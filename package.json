@@ -1,0 +1,26 @@
+{
+  "name": "algorithm-visualizer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["algorithm", "visualizer", "sorting", "pathfinding", "react", "typescript"],
+  "author": "Keshav",
+  "license": "MIT",
+  "description": "Interactive algorithm visualizer featuring sorting algorithms and pathfinding algorithms with step-by-step animations",
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}
