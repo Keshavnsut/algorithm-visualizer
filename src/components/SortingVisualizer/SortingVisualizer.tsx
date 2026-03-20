@@ -9,6 +9,18 @@ interface ArrayBar {
   state: 'default' | 'comparing' | 'swapping' | 'sorted'
 }
 
+interface RunHistoryEntry {
+  id: number
+  algorithm: SortingAlgorithm
+  arraySize: number
+  speed: number
+  comparisons: number
+  swaps: number
+  durationMs: number
+  status: 'completed' | 'stopped'
+  timestamp: string
+}
+
 const ALGORITHM_INFO: Record<SortingAlgorithm, { name: string; description: string; timeComplexity: string; spaceComplexity: string }> = {
   bubble: {
     name: 'Bubble Sort',
@@ -50,7 +62,25 @@ function SortingVisualizer() {
   const [isSorting, setIsSorting] = useState(false)
   const [comparisons, setComparisons] = useState(0)
   const [swaps, setSwaps] = useState(0)
+  const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>([])
   const sortingRef = useRef(false)
+  const comparisonsRef = useRef(0)
+  const swapsRef = useRef(0)
+
+  const updateComparisons = (value: number) => {
+    comparisonsRef.current = value
+    setComparisons(value)
+  }
+
+  const updateSwaps = (value: number) => {
+    swapsRef.current = value
+    setSwaps(value)
+  }
+
+  const resetCounters = () => {
+    updateComparisons(0)
+    updateSwaps(0)
+  }
 
   // Generate random array
   const generateArray = () => {
@@ -62,8 +92,7 @@ function SortingVisualizer() {
       })
     }
     setArray(newArray)
-    setComparisons(0)
-    setSwaps(0)
+    resetCounters()
   }
 
   useEffect(() => {
@@ -89,7 +118,7 @@ function SortingVisualizer() {
         arr[j + 1].state = 'comparing'
         setArray([...arr])
         compCount++
-        setComparisons(compCount)
+        updateComparisons(compCount)
         await delay(101 - speed)
 
         if (arr[j].value > arr[j + 1].value) {
@@ -103,7 +132,7 @@ function SortingVisualizer() {
           arr[j] = arr[j + 1]
           arr[j + 1] = temp
           swapCount++
-          setSwaps(swapCount)
+          updateSwaps(swapCount)
         }
 
         arr[j].state = 'default'
@@ -133,7 +162,7 @@ function SortingVisualizer() {
         arr[j].state = 'comparing'
         setArray([...arr])
         compCount++
-        setComparisons(compCount)
+        updateComparisons(compCount)
         await delay(101 - speed)
 
         if (arr[j].value < arr[minIdx].value) {
@@ -154,7 +183,7 @@ function SortingVisualizer() {
         arr[i] = arr[minIdx]
         arr[minIdx] = temp
         swapCount++
-        setSwaps(swapCount)
+        updateSwaps(swapCount)
       }
 
       arr[i].state = 'sorted'
@@ -188,20 +217,20 @@ function SortingVisualizer() {
         if (!sortingRef.current) return
 
         compCount++
-        setComparisons(compCount)
+        updateComparisons(compCount)
 
         arr[j + 1] = arr[j]
         arr[j + 1].state = 'swapping'
         setArray([...arr])
         swapCount++
-        setSwaps(swapCount)
+        updateSwaps(swapCount)
         await delay(101 - speed)
 
         arr[j + 1].state = 'sorted'
         j--
       }
       compCount++
-      setComparisons(compCount)
+      updateComparisons(compCount)
 
       arr[j + 1] = key
       arr[j + 1].state = 'sorted'
@@ -227,7 +256,7 @@ function SortingVisualizer() {
         arr[k].state = 'comparing'
         setArray([...arr])
         compCount++
-        setComparisons(compCount)
+        updateComparisons(compCount)
         await delay(101 - speed)
 
         if (leftArr[i].value <= rightArr[j].value) {
@@ -238,7 +267,7 @@ function SortingVisualizer() {
           j++
         }
         swapCount++
-        setSwaps(swapCount)
+        updateSwaps(swapCount)
         setArray([...arr])
         await delay(101 - speed)
         arr[k].state = 'default'
@@ -299,7 +328,7 @@ function SortingVisualizer() {
         arr[j].state = 'comparing'
         setArray([...arr])
         compCount++
-        setComparisons(compCount)
+        updateComparisons(compCount)
         await delay(101 - speed)
 
         if (arr[j].value < pivot.value) {
@@ -313,7 +342,7 @@ function SortingVisualizer() {
           arr[i] = arr[j]
           arr[j] = temp
           swapCount++
-          setSwaps(swapCount)
+          updateSwaps(swapCount)
         }
 
         arr[j].state = 'default'
@@ -329,7 +358,7 @@ function SortingVisualizer() {
       arr[i + 1] = arr[high]
       arr[high] = temp
       swapCount++
-      setSwaps(swapCount)
+      updateSwaps(swapCount)
 
       arr[i + 1].state = 'sorted'
       arr[high].state = 'default'
@@ -363,8 +392,8 @@ function SortingVisualizer() {
   const startSorting = async () => {
     setIsSorting(true)
     sortingRef.current = true
-    setComparisons(0)
-    setSwaps(0)
+    resetCounters()
+    const startedAt = performance.now()
 
     // Reset array states
     setArray(array.map(bar => ({ ...bar, state: 'default' })))
@@ -386,6 +415,24 @@ function SortingVisualizer() {
         await quickSort()
         break
     }
+
+    const durationMs = Math.round(performance.now() - startedAt)
+    const status: RunHistoryEntry['status'] = sortingRef.current ? 'completed' : 'stopped'
+
+    setRunHistory(prev => [
+      {
+        id: Date.now(),
+        algorithm,
+        arraySize,
+        speed,
+        comparisons: comparisonsRef.current,
+        swaps: swapsRef.current,
+        durationMs,
+        status,
+        timestamp: new Date().toLocaleTimeString(),
+      },
+      ...prev,
+    ].slice(0, 8))
 
     setIsSorting(false)
     sortingRef.current = false
@@ -460,6 +507,58 @@ function SortingVisualizer() {
       <div className="stats">
         <span>Comparisons: <strong>{comparisons}</strong></span>
         <span>Swaps: <strong>{swaps}</strong></span>
+      </div>
+
+      <div className="history-card">
+        <div className="history-header">
+          <h3>Recent Runs</h3>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setRunHistory([])}
+            disabled={isSorting || runHistory.length === 0}
+          >
+            Clear History
+          </button>
+        </div>
+
+        {runHistory.length === 0 ? (
+          <p className="history-empty">No runs yet. Start sorting to build history.</p>
+        ) : (
+          <div className="history-table-wrapper">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Algorithm</th>
+                  <th>Size</th>
+                  <th>Speed</th>
+                  <th>Comparisons</th>
+                  <th>Swaps</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {runHistory.map((run) => (
+                  <tr key={run.id}>
+                    <td>{run.timestamp}</td>
+                    <td>{ALGORITHM_INFO[run.algorithm].name}</td>
+                    <td>{run.arraySize}</td>
+                    <td>{run.speed}%</td>
+                    <td>{run.comparisons}</td>
+                    <td>{run.swaps}</td>
+                    <td>{run.durationMs}ms</td>
+                    <td>
+                      <span className={`status-pill ${run.status}`}>
+                        {run.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="array-container">
