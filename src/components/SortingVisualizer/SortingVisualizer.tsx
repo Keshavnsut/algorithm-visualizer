@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './SortingVisualizer.css'
 
 // Algorithm implementations will be added in Phase 2
-type SortingAlgorithm = 'bubble' | 'selection' | 'insertion' | 'merge' | 'quick'
+type SortingAlgorithm = 'bubble' | 'selection' | 'insertion' | 'merge' | 'quick' | 'heap' | 'shell'
 
 interface ArrayBar {
   value: number
@@ -51,6 +51,18 @@ const ALGORITHM_INFO: Record<SortingAlgorithm, { name: string; description: stri
     description: 'Picks a pivot element and partitions the array around it, recursively sorting the partitions.',
     timeComplexity: 'O(n log n)',
     spaceComplexity: 'O(log n)',
+  },
+  heap: {
+    name: 'Heap Sort',
+    description: 'Builds a max heap, repeatedly moves the root to the end, and restores heap structure.',
+    timeComplexity: 'O(n log n)',
+    spaceComplexity: 'O(1)',
+  },
+  shell: {
+    name: 'Shell Sort',
+    description: 'Performs insertion sort on elements separated by shrinking gaps to reduce large inversions early.',
+    timeComplexity: 'O(n log n) to O(n²)',
+    spaceComplexity: 'O(1)',
   },
 }
 
@@ -388,6 +400,162 @@ function SortingVisualizer() {
     setArray([...arr])
   }
 
+  // Heap Sort implementation
+  const heapSort = async () => {
+    const arr = [...array]
+    const n = arr.length
+    let compCount = 0
+    let swapCount = 0
+
+    const heapify = async (size: number, root: number): Promise<void> => {
+      if (!sortingRef.current) return
+
+      let largest = root
+      const left = 2 * root + 1
+      const right = 2 * root + 2
+
+      if (left < size) {
+        arr[root].state = 'comparing'
+        arr[left].state = 'comparing'
+        setArray([...arr])
+        compCount++
+        updateComparisons(compCount)
+        await delay(101 - speed)
+
+        if (arr[left].value > arr[largest].value) {
+          largest = left
+        }
+
+        arr[root].state = 'default'
+        arr[left].state = 'default'
+      }
+
+      if (right < size) {
+        arr[root].state = 'comparing'
+        arr[right].state = 'comparing'
+        setArray([...arr])
+        compCount++
+        updateComparisons(compCount)
+        await delay(101 - speed)
+
+        if (arr[right].value > arr[largest].value) {
+          largest = right
+        }
+
+        arr[root].state = 'default'
+        arr[right].state = 'default'
+      }
+
+      if (largest !== root) {
+        arr[root].state = 'swapping'
+        arr[largest].state = 'swapping'
+        setArray([...arr])
+        await delay(101 - speed)
+
+        const temp = arr[root]
+        arr[root] = arr[largest]
+        arr[largest] = temp
+        swapCount++
+        updateSwaps(swapCount)
+
+        arr[root].state = 'default'
+        arr[largest].state = 'default'
+        setArray([...arr])
+
+        await heapify(size, largest)
+      }
+    }
+
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      if (!sortingRef.current) return
+      await heapify(n, i)
+    }
+
+    for (let i = n - 1; i > 0; i--) {
+      if (!sortingRef.current) return
+
+      arr[0].state = 'swapping'
+      arr[i].state = 'swapping'
+      setArray([...arr])
+      await delay(101 - speed)
+
+      const temp = arr[0]
+      arr[0] = arr[i]
+      arr[i] = temp
+      swapCount++
+      updateSwaps(swapCount)
+
+      arr[i].state = 'sorted'
+      arr[0].state = 'default'
+      setArray([...arr])
+
+      await heapify(i, 0)
+    }
+
+    arr[0].state = 'sorted'
+    setArray([...arr])
+  }
+
+  // Shell Sort implementation
+  const shellSort = async () => {
+    const arr = [...array]
+    const n = arr.length
+    let compCount = 0
+    let swapCount = 0
+
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+      for (let i = gap; i < n; i++) {
+        if (!sortingRef.current) return
+
+        const temp = arr[i]
+        let j = i
+
+        arr[i].state = 'comparing'
+        setArray([...arr])
+        await delay(101 - speed)
+
+        while (j >= gap) {
+          if (!sortingRef.current) return
+
+          compCount++
+          updateComparisons(compCount)
+
+          arr[j - gap].state = 'comparing'
+          setArray([...arr])
+          await delay(101 - speed)
+
+          if (arr[j - gap].value > temp.value) {
+            arr[j - gap].state = 'swapping'
+            arr[j].state = 'swapping'
+            setArray([...arr])
+            await delay(101 - speed)
+
+            arr[j] = arr[j - gap]
+            swapCount++
+            updateSwaps(swapCount)
+            setArray([...arr])
+
+            arr[j].state = 'default'
+            arr[j - gap].state = 'default'
+            j -= gap
+          } else {
+            arr[j - gap].state = 'default'
+            break
+          }
+        }
+
+        arr[j] = temp
+        arr[j].state = 'default'
+        setArray([...arr])
+      }
+    }
+
+    for (let i = 0; i < n; i++) {
+      arr[i].state = 'sorted'
+    }
+    setArray([...arr])
+  }
+
   // Start sorting
   const startSorting = async () => {
     setIsSorting(true)
@@ -413,6 +581,12 @@ function SortingVisualizer() {
         break
       case 'quick':
         await quickSort()
+        break
+      case 'heap':
+        await heapSort()
+        break
+      case 'shell':
+        await shellSort()
         break
     }
 
@@ -459,6 +633,8 @@ function SortingVisualizer() {
             <option value="insertion">Insertion Sort</option>
             <option value="merge">Merge Sort</option>
             <option value="quick">Quick Sort</option>
+            <option value="heap">Heap Sort</option>
+            <option value="shell">Shell Sort</option>
           </select>
         </div>
 
