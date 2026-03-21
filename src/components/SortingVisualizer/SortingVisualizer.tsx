@@ -3,6 +3,7 @@ import './SortingVisualizer.css'
 
 // Algorithm implementations will be added in Phase 2
 type SortingAlgorithm = 'bubble' | 'selection' | 'insertion' | 'merge' | 'quick' | 'heap' | 'shell'
+type PivotStrategy = 'last' | 'first' | 'random' | 'median3'
 
 interface ArrayBar {
   value: number
@@ -12,6 +13,7 @@ interface ArrayBar {
 interface RunHistoryEntry {
   id: number
   algorithm: SortingAlgorithm
+  pivotStrategy?: PivotStrategy
   arraySize: number
   speed: number
   comparisons: number
@@ -48,7 +50,7 @@ const ALGORITHM_INFO: Record<SortingAlgorithm, { name: string; description: stri
   },
   quick: {
     name: 'Quick Sort',
-    description: 'Picks a pivot element and partitions the array around it, recursively sorting the partitions.',
+    description: 'Picks a pivot using the selected strategy and partitions the array around it, recursively sorting the partitions.',
     timeComplexity: 'O(n log n)',
     spaceComplexity: 'O(log n)',
   },
@@ -66,11 +68,19 @@ const ALGORITHM_INFO: Record<SortingAlgorithm, { name: string; description: stri
   },
 }
 
+const PIVOT_LABELS: Record<PivotStrategy, string> = {
+  last: 'Last Element',
+  first: 'First Element',
+  random: 'Random Element',
+  median3: 'Median of Three',
+}
+
 function SortingVisualizer() {
   const [array, setArray] = useState<ArrayBar[]>([])
   const [arraySize, setArraySize] = useState(50)
   const [speed, setSpeed] = useState(50)
   const [algorithm, setAlgorithm] = useState<SortingAlgorithm>('bubble')
+  const [pivotStrategy, setPivotStrategy] = useState<PivotStrategy>('last')
   const [isSorting, setIsSorting] = useState(false)
   const [comparisons, setComparisons] = useState(0)
   const [swaps, setSwaps] = useState(0)
@@ -327,7 +337,47 @@ function SortingVisualizer() {
     let compCount = 0
     let swapCount = 0
 
+    const choosePivotIndex = (low: number, high: number): number => {
+      switch (pivotStrategy) {
+        case 'first':
+          return low
+        case 'random':
+          return Math.floor(Math.random() * (high - low + 1)) + low
+        case 'median3': {
+          const mid = Math.floor((low + high) / 2)
+          const a = arr[low].value
+          const b = arr[mid].value
+          const c = arr[high].value
+
+          if ((a <= b && b <= c) || (c <= b && b <= a)) return mid
+          if ((b <= a && a <= c) || (c <= a && a <= b)) return low
+          return high
+        }
+        case 'last':
+        default:
+          return high
+      }
+    }
+
     const partition = async (low: number, high: number): Promise<number> => {
+      const pivotIndex = choosePivotIndex(low, high)
+
+      if (pivotIndex !== high) {
+        arr[pivotIndex].state = 'swapping'
+        arr[high].state = 'swapping'
+        setArray([...arr])
+        await delay(101 - speed)
+
+        const pivotSwapTemp = arr[pivotIndex]
+        arr[pivotIndex] = arr[high]
+        arr[high] = pivotSwapTemp
+        swapCount++
+        updateSwaps(swapCount)
+
+        arr[pivotIndex].state = 'default'
+        arr[high].state = 'default'
+      }
+
       const pivot = arr[high]
       pivot.state = 'comparing'
       setArray([...arr])
@@ -597,6 +647,7 @@ function SortingVisualizer() {
       {
         id: Date.now(),
         algorithm,
+        pivotStrategy: algorithm === 'quick' ? pivotStrategy : undefined,
         arraySize,
         speed,
         comparisons: comparisonsRef.current,
@@ -661,6 +712,22 @@ function SortingVisualizer() {
           />
         </div>
 
+        {algorithm === 'quick' && (
+          <div className="control-group">
+            <label>Pivot:</label>
+            <select
+              value={pivotStrategy}
+              onChange={(e) => setPivotStrategy(e.target.value as PivotStrategy)}
+              disabled={isSorting}
+            >
+              <option value="last">Last Element</option>
+              <option value="first">First Element</option>
+              <option value="random">Random Element</option>
+              <option value="median3">Median of Three</option>
+            </select>
+          </div>
+        )}
+
         <button
           className="btn btn-secondary"
           onClick={generateArray}
@@ -706,6 +773,7 @@ function SortingVisualizer() {
                 <tr>
                   <th>Time</th>
                   <th>Algorithm</th>
+                  <th>Pivot</th>
                   <th>Size</th>
                   <th>Speed</th>
                   <th>Comparisons</th>
@@ -719,6 +787,7 @@ function SortingVisualizer() {
                   <tr key={run.id}>
                     <td>{run.timestamp}</td>
                     <td>{ALGORITHM_INFO[run.algorithm].name}</td>
+                    <td>{run.pivotStrategy ? PIVOT_LABELS[run.pivotStrategy] : '-'}</td>
                     <td>{run.arraySize}</td>
                     <td>{run.speed}%</td>
                     <td>{run.comparisons}</td>
