@@ -1,129 +1,202 @@
 # Algorithm Visualizer
 
-An interactive web application to visualize popular sorting and pathfinding algorithms. Built with React + TypeScript.
+Interactive algorithm learning platform built with React + TypeScript + Vite.
 
-![Algorithm Visualizer](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-5-yellow)
+![React](https://img.shields.io/badge/React-18-149eca)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-2f74c0)
+![Vite](https://img.shields.io/badge/Vite-7-f2b022)
+![Status](https://img.shields.io/badge/Status-Active%20Development-2d9b5f)
 
-## Features
+---
 
-### Sorting Algorithms
-- **Bubble Sort** - Simple comparison-based sorting
-- **Selection Sort** - In-place comparison sorting
-- **Insertion Sort** - Builds sorted array one element at a time
-- **Merge Sort** - Efficient divide-and-conquer algorithm
-- **Quick Sort** - Fast partition-based sorting
+## Project Overview
 
-### Pathfinding Algorithms
-- **Breadth-First Search (BFS)** - Guarantees shortest path in unweighted graphs
-- **Depth-First Search (DFS)** - Explores paths deeply before backtracking
-- **Dijkstra's Algorithm** - Finds shortest path in weighted graphs
-- **A* Search** - Uses heuristics for efficient pathfinding
+This project currently has three major learning sections:
 
-### Interactive Controls
-- Adjust visualization speed
-- Change array size (sorting)
-- Draw walls and set start/end points (pathfinding)
-- Generate random arrays or mazes
-- Step-by-step execution with color-coded states
+- Sorting Visualizer
+- Pathfinding Visualizer
+- Dynamic Programming Hub
 
-## Getting Started
+Each section includes algorithm controls, visual states, and educational overlays to help users understand how the algorithm evolves step by step.
+
+---
+
+## Current State Dashboard
+
+| Section | Status | Highlights |
+|---|---|---|
+| Sorting | Implemented | 7 sorting algorithms, speed and size controls, quick-sort pivot strategy, run history panel |
+| Pathfinding | Implemented | BFS, DFS, Dijkstra, A*, editable weighted graph, presets, drag and edit interactions |
+| Dynamic Programming | Implemented (Phase 1+) | Climbing Stairs and House Robber with visual walkthrough, compare mode, recursion tree mode, dry run, C++ tabulation and memoization |
+
+### Progress Snapshot
+
+- Sorting: Completed core feature set
+- Pathfinding: Completed core feature set
+- Dynamic Programming: Strong foundation completed, expanding problem library
+
+---
+
+## Section Details
+
+### 1) Sorting Visualizer
+
+#### Algorithms Available
+
+- Bubble Sort
+- Selection Sort
+- Insertion Sort
+- Merge Sort
+- Quick Sort
+- Heap Sort
+- Shell Sort
+
+#### Key Interactions
+
+- Adjustable array size and speed
+- Quick Sort pivot strategy selector:
+	- First element
+	- Last element
+	- Random element
+	- Median of three
+- Real-time metrics:
+	- Comparisons
+	- Swaps
+- Recent run history with timing and configuration snapshot
+
+---
+
+### 2) Pathfinding Visualizer
+
+#### Algorithms Available
+
+- Breadth-First Search (BFS)
+- Depth-First Search (DFS)
+- Dijkstra
+- A*
+
+#### Graph Features
+
+- Preset graph layouts
+- Add / move / delete nodes
+- Add weighted edges
+- Select custom start and end nodes
+- Visual state updates for visited path and final shortest path
+
+---
+
+### 3) Dynamic Programming Hub
+
+#### Problems Added
+
+- Climbing Stairs
+- House Robber
+
+#### Learning Modes (per problem)
+
+- DP Mode
+- Recursion vs DP Mode
+- Recursion Tree Mode
+
+#### Educational Layers
+
+- Interactive walkthrough controls (play, pause, next, previous, reset)
+- Visual explanation cards
+- State transitions
+- Detailed dry run table
+- C++ code section with:
+	- Tabulation
+	- Memoization
+
+---
+
+## Roadmap (Future Additions)
+
+### Near-Term
+
+- Add more DP problems (Coin Change, Unique Paths, LCS)
+- Improve recursion tree with color-coded edge meaning and depth controls
+- Add code copy buttons for all language blocks
+- Add speed presets for DP animation
+
+### Mid-Term
+
+- Side-by-side algorithm comparison mode in Sorting and DP
+- Performance charting for multiple runs
+- Export dry run as CSV
+- URL-shareable state (problem, mode, step)
+
+### Long-Term
+
+- Additional algorithm categories:
+	- Graph algorithms (MST, Bellman-Ford)
+	- Greedy problems
+	- Backtracking visualizer
+- In-browser code execution sandbox for selected snippets
+- Guided challenge mode with problem prompts and validation
+
+---
+
+## Tech Stack
+
+- React 18
+- TypeScript
+- Vite
+- CSS3
+
+---
+
+## Run Locally
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn
 
-### Installation
+- Node.js 18+
+- npm
+
+### Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/algorithm-visualizer.git
-
-# Navigate to project directory
+git clone https://github.com/Keshavnsut/algorithm-visualizer.git
 cd algorithm-visualizer
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to view it in your browser.
+Open: http://localhost:5173
 
-### Build for Production
+### Production Build
 
 ```bash
 npm run build
 ```
 
-## Project Structure
+---
 
-```
+## Repository Structure
+
+```text
 algorithm-visualizer/
-├── src/
-│   ├── components/
-│   │   ├── SortingVisualizer/
-│   │   │   ├── SortingVisualizer.tsx
-│   │   │   └── SortingVisualizer.css
-│   │   └── PathfindingVisualizer/
-│   │       ├── PathfindingVisualizer.tsx
-│   │       └── PathfindingVisualizer.css
-│   ├── App.tsx
-│   ├── App.css
-│   ├── index.css
-│   └── main.tsx
-├── index.html
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
+	src/
+		components/
+			SortingVisualizer/
+			PathfindingVisualizer/
+			DPSection/
+				cpp/
+		App.tsx
+		App.css
+		index.css
+		main.tsx
+	public/
+	package.json
+	vite.config.ts
 ```
 
-## How It Works
+---
 
-### Sorting Visualizer
-- Each bar represents an array element
-- **Purple**: Default state
-- **Yellow**: Being compared
-- **Red**: Being swapped
-- **Green**: Sorted position
-
-### Pathfinding Visualizer
-- Click and drag to draw walls
-- **Green**: Start node
-- **Red**: End node
-- **Purple**: Visited nodes
-- **Yellow**: Final path
-
-## Algorithm Complexity
-
-| Algorithm | Time (Best) | Time (Average) | Time (Worst) | Space |
-|-----------|-------------|----------------|--------------|-------|
-| Bubble Sort | O(n) | O(n²) | O(n²) | O(1) |
-| Selection Sort | O(n²) | O(n²) | O(n²) | O(1) |
-| Insertion Sort | O(n) | O(n²) | O(n²) | O(1) |
-| Merge Sort | O(n log n) | O(n log n) | O(n log n) | O(n) |
-| Quick Sort | O(n log n) | O(n log n) | O(n²) | O(log n) |
-
-## Technologies Used
-
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **CSS3** - Styling with CSS variables
-
-## Contributing
+## Contribution
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Inspired by the need to visualize algorithms for learning
-- Built as a portfolio project
+2. Create a branch
+3. Commit your changes
+4. Push to your branch
+5. Open a pull request
