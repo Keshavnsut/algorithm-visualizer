@@ -11,7 +11,7 @@ interface ClimbingStairsResult {
   transitions: string[]
 }
 
-type VisualMode = 'dp' | 'compare' | 'tree'
+type VisualMode = 'dp' | 'compare' | 'tree' | 'dryrun'
 
 interface DryRunRow {
   step: number
@@ -53,39 +53,6 @@ interface TreeGraphEdge {
   toY: number
   side: 'left' | 'right'
 }
-
-const DP_CATEGORIES = [
-  {
-    title: '1D Dynamic Programming',
-    description: 'Linear-state problems where each state depends on previous indices.',
-    placeholders: ['Climbing Stairs', 'House Robber', 'Coin Change'],
-  },
-  {
-    title: '2D Dynamic Programming',
-    description: 'Grid, matrix, or two-parameter state transitions.',
-    placeholders: ['Unique Paths', 'Longest Common Subsequence', 'Edit Distance'],
-  },
-  {
-    title: 'Knapsack Pattern',
-    description: 'Include/exclude decisions with capacity or constraints.',
-    placeholders: ['0/1 Knapsack', 'Partition Equal Subset Sum', 'Target Sum'],
-  },
-  {
-    title: 'Longest Increasing Subsequence Pattern',
-    description: 'Subsequence optimization with ordering constraints.',
-    placeholders: ['LIS', 'Russian Doll Envelopes', 'Number of LIS'],
-  },
-  {
-    title: 'Interval Dynamic Programming',
-    description: 'State depends on ranges [l, r] and split points.',
-    placeholders: ['Matrix Chain Multiplication', 'Burst Balloons', 'Palindrome Partitioning'],
-  },
-  {
-    title: 'Tree Dynamic Programming',
-    description: 'DP states on tree nodes with parent-child decisions.',
-    placeholders: ['House Robber III', 'Diameter Variants', 'Tree Matching'],
-  },
-]
 
 const solveClimbingStairs = (n: number): ClimbingStairsResult => {
   if (n <= 1) {
@@ -302,9 +269,168 @@ const buildHouseRobberDryRun = (houses: number[], dp: number[]): HouseDryRunRow[
 }
 
 type ProblemView = 'visual' | 'cpp'
+type QuickStartMode = 'visual' | 'tree' | 'dryrun' | 'cpp'
+
+type ProblemId =
+  | 'climbing'
+  | 'house'
+  | 'coin-change'
+  | 'unique-paths'
+  | 'lcs'
+  | 'edit-distance'
+  | 'knapsack-01'
+  | 'partition-equal-subset-sum'
+  | 'target-sum'
+  | 'lis'
+  | 'russian-doll-envelopes'
+  | 'number-of-lis'
+  | 'matrix-chain-multiplication'
+  | 'burst-balloons'
+  | 'palindrome-partitioning'
+  | 'house-robber-iii'
+  | 'diameter-variants'
+  | 'tree-matching'
+
+const DP_PROBLEM_DIRECTORY: Array<{
+  id: ProblemId
+  title: string
+  tag: string
+  summary: string
+  implemented: boolean
+}> = [
+  {
+    id: 'climbing',
+    title: 'Climbing Stairs',
+    tag: '1D DP',
+    summary: 'Count total ways to reach step n using 1-step and 2-step moves.',
+    implemented: true,
+  },
+  {
+    id: 'house',
+    title: 'House Robber',
+    tag: '1D DP',
+    summary: 'Maximize loot with the constraint that adjacent houses cannot be robbed.',
+    implemented: true,
+  },
+  {
+    id: 'coin-change',
+    title: 'Coin Change',
+    tag: '1D DP',
+    summary: 'Minimum coins needed to make a target amount.',
+    implemented: false,
+  },
+  {
+    id: 'unique-paths',
+    title: 'Unique Paths',
+    tag: '2D DP',
+    summary: 'Count grid paths with right/down moves.',
+    implemented: false,
+  },
+  {
+    id: 'lcs',
+    title: 'Longest Common Subsequence',
+    tag: '2D DP',
+    summary: 'Find longest subsequence common to two strings.',
+    implemented: false,
+  },
+  {
+    id: 'edit-distance',
+    title: 'Edit Distance',
+    tag: '2D DP',
+    summary: 'Minimum operations to convert one string into another.',
+    implemented: false,
+  },
+  {
+    id: 'knapsack-01',
+    title: '0/1 Knapsack',
+    tag: 'Knapsack',
+    summary: 'Maximize value under capacity with pick-or-skip choices.',
+    implemented: false,
+  },
+  {
+    id: 'partition-equal-subset-sum',
+    title: 'Partition Equal Subset Sum',
+    tag: 'Knapsack',
+    summary: 'Check if array can split into two equal-sum subsets.',
+    implemented: false,
+  },
+  {
+    id: 'target-sum',
+    title: 'Target Sum',
+    tag: 'Knapsack',
+    summary: 'Count ways to assign +/- signs to hit a target.',
+    implemented: false,
+  },
+  {
+    id: 'lis',
+    title: 'Longest Increasing Subsequence',
+    tag: 'LIS Pattern',
+    summary: 'Find the longest strictly increasing subsequence.',
+    implemented: false,
+  },
+  {
+    id: 'russian-doll-envelopes',
+    title: 'Russian Doll Envelopes',
+    tag: 'LIS Pattern',
+    summary: 'Maximize nested envelopes after sorting constraints.',
+    implemented: false,
+  },
+  {
+    id: 'number-of-lis',
+    title: 'Number of LIS',
+    tag: 'LIS Pattern',
+    summary: 'Count how many longest increasing subsequences exist.',
+    implemented: false,
+  },
+  {
+    id: 'matrix-chain-multiplication',
+    title: 'Matrix Chain Multiplication',
+    tag: 'Interval DP',
+    summary: 'Choose split points to minimize multiplication cost.',
+    implemented: false,
+  },
+  {
+    id: 'burst-balloons',
+    title: 'Burst Balloons',
+    tag: 'Interval DP',
+    summary: 'Maximize coins by choosing optimal burst order.',
+    implemented: false,
+  },
+  {
+    id: 'palindrome-partitioning',
+    title: 'Palindrome Partitioning',
+    tag: 'Interval DP',
+    summary: 'Minimize cuts so each partition is a palindrome.',
+    implemented: false,
+  },
+  {
+    id: 'house-robber-iii',
+    title: 'House Robber III',
+    tag: 'Tree DP',
+    summary: 'Tree variant of robbery with parent-child constraints.',
+    implemented: false,
+  },
+  {
+    id: 'diameter-variants',
+    title: 'Diameter Variants',
+    tag: 'Tree DP',
+    summary: 'Compute longest path style metrics on trees.',
+    implemented: false,
+  },
+  {
+    id: 'tree-matching',
+    title: 'Tree Matching',
+    tag: 'Tree DP',
+    summary: 'Optimize matching or independent choices on trees.',
+    implemented: false,
+  },
+]
 
 function DPSection() {
-  const [selectedProblem, setSelectedProblem] = useState<'climbing' | 'house'>('climbing')
+  const [selectedProblem, setSelectedProblem] = useState<ProblemId | null>(null)
+  const [quickStartProblem, setQuickStartProblem] = useState<ProblemId>('climbing')
+  const [quickStartMode, setQuickStartMode] = useState<QuickStartMode>('visual')
+  const [lastOpenedProblem, setLastOpenedProblem] = useState<ProblemId | null>(null)
   const [stairsCount, setStairsCount] = useState(6)
   const [problemView, setProblemView] = useState<ProblemView>('visual')
   const [visualMode, setVisualMode] = useState<VisualMode>('dp')
@@ -327,12 +453,12 @@ function DPSection() {
   const houseDryRunRows = useMemo(() => buildHouseRobberDryRun(houses, houseRobber.dp), [houses, houseRobber.dp])
   const houseRecursionCallCounts = useMemo(() => buildNaiveRecursionCallCounts(houses.length), [houses.length])
   const climbingTreeLevels = useMemo(
-    () => buildRecursionTreeLevels(currentStep, 5, (value) => (value <= 1 ? null : [value - 1, value - 2]), (value) => `f(${value})`),
-    [currentStep]
+    () => buildRecursionTreeLevels(stairsCount, 5, (value) => (value <= 1 ? null : [value - 1, value - 2]), (value) => `f(${value})`),
+    [stairsCount]
   )
   const houseTreeLevels = useMemo(
-    () => buildRecursionTreeLevels(currentHouseIndex + 1, 5, (value) => (value <= 0 ? null : [value - 1, value - 2]), (value) => `R(${value})`),
-    [currentHouseIndex]
+    () => buildRecursionTreeLevels(houses.length, 5, (value) => (value <= 0 ? null : [value - 1, value - 2]), (value) => `R(${value})`),
+    [houses.length]
   )
   const climbingTreeGraph = useMemo(
     () =>
@@ -471,39 +597,163 @@ function DPSection() {
     ['--total-steps']: stairsCount,
   } as CSSProperties
 
+  const handleSelectProblem = (problem: ProblemId) => {
+    setSelectedProblem(problem)
+    setLastOpenedProblem(problem)
+  }
+
+  const handleQuickStart = () => {
+    const targetProblem = quickStartProblem
+    handleSelectProblem(targetProblem)
+
+    if (targetProblem === 'climbing') {
+      if (quickStartMode === 'cpp') {
+        setProblemView('cpp')
+      } else {
+        setProblemView('visual')
+        setVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
+      }
+      return
+    }
+
+    if (targetProblem === 'house') {
+      if (quickStartMode === 'cpp') {
+        setHouseProblemView('cpp')
+      } else {
+        setHouseProblemView('visual')
+        setHouseVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
+      }
+    }
+  }
+
+  const selectedProblemTitle =
+    DP_PROBLEM_DIRECTORY.find((problem) => problem.id === selectedProblem)?.title ?? 'Choose a problem'
+  const selectedProblemInfo = DP_PROBLEM_DIRECTORY.find((problem) => problem.id === selectedProblem)
+  const lastOpenedTitle =
+    DP_PROBLEM_DIRECTORY.find((problem) => problem.id === lastOpenedProblem)?.title ?? 'None yet'
+  const totalProblems = DP_PROBLEM_DIRECTORY.length
+  const implementedProblems = DP_PROBLEM_DIRECTORY.filter((problem) => problem.implemented).length
+  const upcomingProblems = totalProblems - implementedProblems
+
   return (
     <section className="visualizer-container dp-section">
       <div className="dp-header">
-        <h2>Dynamic Programming Hub</h2>
+        <span className="dp-header-kicker">Algorithm Visualizer • DP Workspace</span>
+        <div className="dp-header-top">
+          <h2>Dynamic Programming Hub</h2>
+          <div className="dp-header-stats" aria-label="DP section stats">
+            <span><strong>{implementedProblems}</strong> implemented</span>
+            <span><strong>{upcomingProblems}</strong> coming soon</span>
+            <span><strong>{totalProblems}</strong> total</span>
+          </div>
+        </div>
         <p>
-          This is the base structure for DP module. From here, we will add problems one by one with
-          clear explanations, state transitions, and interactive visualizations.
+          Learn each problem through visual modes, recursion trees, dry runs, and C++ references.
+          Pick a problem from the index and dive deep with interactive controls.
         </p>
       </div>
 
       <div className="dp-roadmap">
-        <span className="dp-badge">Phase 1: Structure</span>
-        <span className="dp-badge">Phase 2: Problem Implementations</span>
-        <span className="dp-badge dp-badge-muted">Phase 3: Interactive Visualizations</span>
+        <span className="dp-badge dp-badge-violet">Problem Index</span>
+        <span className="dp-badge dp-badge-violet">Interactive Visuals</span>
+        <span className="dp-badge dp-badge-violet">C++</span>
+        <span className="dp-badge dp-badge-violet">Dry Run</span>
+        <span className="dp-badge dp-badge-violet">Recursion Tree</span>
       </div>
 
-      <div className="dp-problem-picker">
-        <label htmlFor="dp-problem-select">Select Problem</label>
-        <select
-          id="dp-problem-select"
-          value={selectedProblem}
-          onChange={(e) => setSelectedProblem(e.target.value as 'climbing' | 'house')}
-        >
-          <option value="climbing">Climbing Stairs</option>
-          <option value="house">House Robber</option>
-        </select>
+      <section className="dp-quickstart" aria-label="Quick start panel">
+        <div className="dp-quickstart-head">
+          <h3>Start Here</h3>
+          <span>Last opened: {lastOpenedTitle}</span>
+        </div>
+
+        <div className="dp-quickstart-grid">
+          <label className="dp-quickstart-field">
+            <span>Problem</span>
+            <select
+              value={quickStartProblem}
+              onChange={(e) => setQuickStartProblem(e.target.value as ProblemId)}
+            >
+              {DP_PROBLEM_DIRECTORY.map((problem) => (
+                <option key={problem.id} value={problem.id}>
+                  {problem.title}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="dp-quickstart-field">
+            <span>Mode</span>
+            <select
+              value={quickStartMode}
+              onChange={(e) => setQuickStartMode(e.target.value as QuickStartMode)}
+            >
+              <option value="visual">Visual Walkthrough</option>
+              <option value="tree">Recursion Tree</option>
+              <option value="dryrun">Dry Run</option>
+              <option value="cpp">C++ Solution</option>
+            </select>
+          </label>
+
+          <button
+            type="button"
+            className="dp-quickstart-btn"
+            onClick={handleQuickStart}
+          >
+            Open Problem
+          </button>
+        </div>
+      </section>
+
+      {selectedProblem === null && (
+      <div className="dp-problem-directory" id="dp-problem-directory">
+        <div className="dp-problem-directory-head">
+          <h3>Problem List</h3>
+          <span>{selectedProblemTitle}</span>
+        </div>
+
+        <div className="dp-problem-directory-grid" role="list" aria-label="DP problems list">
+          {DP_PROBLEM_DIRECTORY.map((problem) => (
+            <button
+              key={problem.id}
+              type="button"
+              role="listitem"
+              className={`dp-problem-tile ${selectedProblem === problem.id ? 'active' : ''}`}
+              onClick={() => handleSelectProblem(problem.id)}
+            >
+              <div className="dp-problem-tile-head">
+                <strong>{problem.title}</strong>
+                <span>{problem.tag}</span>
+              </div>
+              <p>{problem.summary}</p>
+            </button>
+          ))}
+        </div>
       </div>
+      )}
 
       {selectedProblem === 'climbing' && (
-      <article className="dp-problem-card">
+      <article className="dp-problem-card" id="dp-problem-climbing">
         <div className="dp-problem-header">
           <h3>Problem 1: Climbing Stairs</h3>
           <span className="dp-problem-tag">1D DP</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => setSelectedProblem(null)}
+          >
+            Back to Problem List
+          </button>
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => handleSelectProblem('house')}
+          >
+            Go to House Robber
+          </button>
         </div>
 
         <p className="dp-problem-description">
@@ -612,6 +862,14 @@ function DPSection() {
                 aria-selected={visualMode === 'tree'}
               >
                 Recursion Tree
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${visualMode === 'dryrun' ? 'active' : ''}`}
+                onClick={() => setVisualMode('dryrun')}
+                aria-selected={visualMode === 'dryrun'}
+              >
+                Dry Run
               </button>
             </div>
 
@@ -779,7 +1037,7 @@ function DPSection() {
               <section className="dp-recursion-tree-section" aria-label="Climbing stairs recursion tree">
                 <div className="dp-recursion-tree-header">
                   <h4>Recursion Tree (Naive)</h4>
-                  <span>Root: f({currentStep}) | Depth: {climbingTreeDepth} | Nodes: {climbingTreeGraph.nodes.length}</span>
+                  <span>Root: f({stairsCount}) | Depth: {climbingTreeDepth} | Nodes: {climbingTreeGraph.nodes.length}</span>
                 </div>
                 <div className="dp-recursion-context">
                   <span className="ctx root">Root</span>
@@ -821,6 +1079,54 @@ function DPSection() {
               </section>
             )}
 
+            {visualMode === 'dryrun' && (
+              <div className="dp-dry-run">
+                <div className="dp-dry-run-header">
+                  <h4>Detailed Dry Run</h4>
+                  <span>Current focus: dp[{currentStep}]</span>
+                </div>
+
+                <div className="dp-dry-run-table-wrap">
+                  <table className="dp-dry-run-table">
+                    <thead>
+                      <tr>
+                        <th>Step</th>
+                        <th>Formula</th>
+                        <th>Substitution</th>
+                        <th>Result</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dryRunRows.map((row) => {
+                        const isCurrent = row.step === currentStep
+                        const isDone = row.step <= currentStep
+
+                        return (
+                          <tr
+                            key={row.step}
+                            className={`dp-dry-run-row ${isCurrent ? 'current' : ''} ${isDone ? 'done' : 'pending'}`}
+                          >
+                            <td>dp[{row.step}]</td>
+                            <td>{row.expression}</td>
+                            <td>{row.substitution}</td>
+                            <td>{isDone ? row.result : '?'}</td>
+                            <td>
+                              {isCurrent
+                                ? 'Computing'
+                                : isDone
+                                  ? 'Computed'
+                                  : 'Pending'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             <div className="dp-transitions">
               <h4>State Transitions</h4>
               <ul>
@@ -828,52 +1134,6 @@ function DPSection() {
                   <li key={line}>{line}</li>
                 ))}
               </ul>
-            </div>
-
-            <div className="dp-dry-run">
-              <div className="dp-dry-run-header">
-                <h4>Detailed Dry Run</h4>
-                <span>Current focus: dp[{currentStep}]</span>
-              </div>
-
-              <div className="dp-dry-run-table-wrap">
-                <table className="dp-dry-run-table">
-                  <thead>
-                    <tr>
-                      <th>Step</th>
-                      <th>Formula</th>
-                      <th>Substitution</th>
-                      <th>Result</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dryRunRows.map((row) => {
-                      const isCurrent = row.step === currentStep
-                      const isDone = row.step <= currentStep
-
-                      return (
-                        <tr
-                          key={row.step}
-                          className={`dp-dry-run-row ${isCurrent ? 'current' : ''} ${isDone ? 'done' : 'pending'}`}
-                        >
-                          <td>dp[{row.step}]</td>
-                          <td>{row.expression}</td>
-                          <td>{row.substitution}</td>
-                          <td>{isDone ? row.result : '?'}</td>
-                          <td>
-                            {isCurrent
-                              ? 'Computing'
-                              : isDone
-                                ? 'Computed'
-                                : 'Pending'}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
             </div>
           </>
         ) : (
@@ -897,10 +1157,27 @@ function DPSection() {
       )}
 
       {selectedProblem === 'house' && (
-      <article className="dp-problem-card">
+      <article className="dp-problem-card" id="dp-problem-house">
         <div className="dp-problem-header">
           <h3>Problem 2: House Robber</h3>
           <span className="dp-problem-tag">1D DP</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => setSelectedProblem(null)}
+          >
+            Back to Problem List
+          </button>
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => handleSelectProblem('climbing')}
+          >
+            Go to Climbing Stairs
+          </button>
         </div>
 
         <p className="dp-problem-description">
@@ -1052,6 +1329,14 @@ function DPSection() {
               >
                 Recursion Tree
               </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${houseVisualMode === 'dryrun' ? 'active' : ''}`}
+                onClick={() => setHouseVisualMode('dryrun')}
+                aria-selected={houseVisualMode === 'dryrun'}
+              >
+                Dry Run
+              </button>
             </div>
 
             <div className="dp-answer">
@@ -1107,7 +1392,7 @@ function DPSection() {
               <section className="dp-recursion-tree-section" aria-label="House robber recursion tree">
                 <div className="dp-recursion-tree-header">
                   <h4>Recursion Tree (Naive)</h4>
-                  <span>Root: R({currentHouseIndex + 1}) | Depth: {houseTreeDepth} | Nodes: {houseTreeGraph.nodes.length}</span>
+                  <span>Root: R({houses.length}) | Depth: {houseTreeDepth} | Nodes: {houseTreeGraph.nodes.length}</span>
                 </div>
                 <div className="dp-recursion-context">
                   <span className="ctx root">Root</span>
@@ -1149,6 +1434,55 @@ function DPSection() {
               </section>
             )}
 
+            {houseVisualMode === 'dryrun' && (
+              <div className="dp-dry-run">
+                <div className="dp-dry-run-header">
+                  <h4>Detailed Dry Run</h4>
+                  <span>Current focus: house {currentHouseIndex + 1}</span>
+                </div>
+
+                <div className="dp-dry-run-table-wrap">
+                  <table className="dp-dry-run-table">
+                    <thead>
+                      <tr>
+                        <th>House</th>
+                        <th>Amount</th>
+                        <th>Skip (dp[i-1])</th>
+                        <th>Take (value + dp[i-2])</th>
+                        <th>Chosen (dp[i])</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {houseDryRunRows.map((row) => {
+                        const isCurrent = row.houseIndex === currentHouseIndex
+                        const isDone = row.houseIndex <= currentHouseIndex
+                        return (
+                          <tr
+                            key={row.houseIndex}
+                            className={`dp-dry-run-row ${isCurrent ? 'current' : ''} ${isDone ? 'done' : 'pending'}`}
+                          >
+                            <td>House {row.houseIndex + 1}</td>
+                            <td>{row.amount}</td>
+                            <td>{isDone ? row.skip : '?'}</td>
+                            <td>{isDone ? row.take : '?'}</td>
+                            <td>{isDone ? row.chosen : '?'}</td>
+                            <td>
+                              {isCurrent
+                                ? 'Computing'
+                                : isDone
+                                  ? 'Computed'
+                                  : 'Pending'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             <div className="dp-transitions">
               <h4>State Transitions</h4>
               <ul>
@@ -1156,53 +1490,6 @@ function DPSection() {
                   <li key={line}>{line}</li>
                 ))}
               </ul>
-            </div>
-
-            <div className="dp-dry-run">
-              <div className="dp-dry-run-header">
-                <h4>Detailed Dry Run</h4>
-                <span>Current focus: house {currentHouseIndex + 1}</span>
-              </div>
-
-              <div className="dp-dry-run-table-wrap">
-                <table className="dp-dry-run-table">
-                  <thead>
-                    <tr>
-                      <th>House</th>
-                      <th>Amount</th>
-                      <th>Skip (dp[i-1])</th>
-                      <th>Take (value + dp[i-2])</th>
-                      <th>Chosen (dp[i])</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {houseDryRunRows.map((row) => {
-                      const isCurrent = row.houseIndex === currentHouseIndex
-                      const isDone = row.houseIndex <= currentHouseIndex
-                      return (
-                        <tr
-                          key={row.houseIndex}
-                          className={`dp-dry-run-row ${isCurrent ? 'current' : ''} ${isDone ? 'done' : 'pending'}`}
-                        >
-                          <td>House {row.houseIndex + 1}</td>
-                          <td>{row.amount}</td>
-                          <td>{isDone ? row.skip : '?'}</td>
-                          <td>{isDone ? row.take : '?'}</td>
-                          <td>{isDone ? row.chosen : '?'}</td>
-                          <td>
-                            {isCurrent
-                              ? 'Computing'
-                              : isDone
-                                ? 'Computed'
-                                : 'Pending'}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
             </div>
           </>
         ) : (
@@ -1225,19 +1512,43 @@ function DPSection() {
       </article>
       )}
 
-      <div className="dp-grid">
-        {DP_CATEGORIES.map((category) => (
-          <article key={category.title} className="dp-card">
-            <h3>{category.title}</h3>
-            <p>{category.description}</p>
-            <ul>
-              {category.placeholders.map((problem) => (
-                <li key={problem}>{problem}</li>
-              ))}
-            </ul>
-          </article>
-        ))}
-      </div>
+      {selectedProblem !== null && selectedProblem !== 'climbing' && selectedProblem !== 'house' && (
+      <article className="dp-problem-card" id="dp-problem-coming-soon">
+        <div className="dp-problem-header">
+          <h3>{selectedProblemInfo?.title ?? 'Problem'}</h3>
+          <span className="dp-problem-tag">Coming Soon</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => setSelectedProblem(null)}
+          >
+            Back to Problem List
+          </button>
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => handleSelectProblem('climbing')}
+          >
+            Open Climbing Stairs
+          </button>
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => handleSelectProblem('house')}
+          >
+            Open House Robber
+          </button>
+        </div>
+
+        <p className="dp-problem-description">
+          This problem is not implemented yet. It will be added soon with full explanation,
+          dry run, visualization modes, and C++ code.
+        </p>
+      </article>
+      )}
     </section>
   )
 }
