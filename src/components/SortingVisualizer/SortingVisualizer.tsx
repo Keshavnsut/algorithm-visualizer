@@ -1,9 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import './SortingVisualizer.css'
+import bubbleSortCppSource from './cpp/bubble_sort.cpp?raw'
+import selectionSortCppSource from './cpp/selection_sort.cpp?raw'
+import insertionSortCppSource from './cpp/insertion_sort.cpp?raw'
+import mergeSortCppSource from './cpp/merge_sort.cpp?raw'
+import quickSortCppSource from './cpp/quick_sort.cpp?raw'
+import heapSortCppSource from './cpp/heap_sort.cpp?raw'
+import shellSortCppSource from './cpp/shell_sort.cpp?raw'
 
-// Algorithm implementations will be added in Phase 2
 type SortingAlgorithm = 'bubble' | 'selection' | 'insertion' | 'merge' | 'quick' | 'heap' | 'shell'
 type PivotStrategy = 'last' | 'first' | 'random' | 'median3'
+type SortingView = 'visual' | 'cpp'
 
 interface ArrayBar {
   value: number
@@ -75,12 +82,24 @@ const PIVOT_LABELS: Record<PivotStrategy, string> = {
   median3: 'Median of Three',
 }
 
+const SORTING_CPP_IMPLEMENTATIONS: Record<SortingAlgorithm, { title: string; source: string }> = {
+  bubble: { title: 'Bubble Sort', source: bubbleSortCppSource },
+  selection: { title: 'Selection Sort', source: selectionSortCppSource },
+  insertion: { title: 'Insertion Sort', source: insertionSortCppSource },
+  merge: { title: 'Merge Sort', source: mergeSortCppSource },
+  quick: { title: 'Quick Sort (Pivot Strategies Included)', source: quickSortCppSource },
+  heap: { title: 'Heap Sort', source: heapSortCppSource },
+  shell: { title: 'Shell Sort', source: shellSortCppSource },
+}
+
 function SortingVisualizer() {
   const [array, setArray] = useState<ArrayBar[]>([])
   const [arraySize, setArraySize] = useState(50)
   const [speed, setSpeed] = useState(50)
   const [algorithm, setAlgorithm] = useState<SortingAlgorithm>('bubble')
   const [pivotStrategy, setPivotStrategy] = useState<PivotStrategy>('last')
+  const [view, setView] = useState<SortingView>('visual')
+  const [cppAlgorithm, setCppAlgorithm] = useState<SortingAlgorithm>('bubble')
   const [isSorting, setIsSorting] = useState(false)
   const [comparisons, setComparisons] = useState(0)
   const [swaps, setSwaps] = useState(0)
@@ -676,7 +695,11 @@ function SortingVisualizer() {
           <label>Algorithm:</label>
           <select
             value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value as SortingAlgorithm)}
+            onChange={(e) => {
+              const selected = e.target.value as SortingAlgorithm
+              setAlgorithm(selected)
+              setCppAlgorithm(selected)
+            }}
             disabled={isSorting}
           >
             <option value="bubble">Bubble Sort</option>
@@ -747,86 +770,141 @@ function SortingVisualizer() {
         )}
       </div>
 
-      <div className="stats">
-        <span>Comparisons: <strong>{comparisons}</strong></span>
-        <span>Swaps: <strong>{swaps}</strong></span>
+      <div className="sorting-view-toggle" role="tablist" aria-label="Sorting section view">
+        <button
+          type="button"
+          className={`sorting-view-btn ${view === 'visual' ? 'active' : ''}`}
+          onClick={() => setView('visual')}
+          aria-selected={view === 'visual'}
+        >
+          Visualization
+        </button>
+        <button
+          type="button"
+          className={`sorting-view-btn ${view === 'cpp' ? 'active' : ''}`}
+          onClick={() => setView('cpp')}
+          aria-selected={view === 'cpp'}
+        >
+          C++ Code
+        </button>
       </div>
 
-      <div className="history-card">
-        <div className="history-header">
-          <h3>Recent Runs</h3>
-          <button
-            className="btn btn-secondary"
-            onClick={() => setRunHistory([])}
-            disabled={isSorting || runHistory.length === 0}
-          >
-            Clear History
-          </button>
-        </div>
-
-        {runHistory.length === 0 ? (
-          <p className="history-empty">No runs yet. Start sorting to build history.</p>
-        ) : (
-          <div className="history-table-wrapper">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Algorithm</th>
-                  <th>Pivot</th>
-                  <th>Size</th>
-                  <th>Speed</th>
-                  <th>Comparisons</th>
-                  <th>Swaps</th>
-                  <th>Duration</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {runHistory.map((run) => (
-                  <tr key={run.id}>
-                    <td>{run.timestamp}</td>
-                    <td>{ALGORITHM_INFO[run.algorithm].name}</td>
-                    <td>{run.pivotStrategy ? PIVOT_LABELS[run.pivotStrategy] : '-'}</td>
-                    <td>{run.arraySize}</td>
-                    <td>{run.speed}%</td>
-                    <td>{run.comparisons}</td>
-                    <td>{run.swaps}</td>
-                    <td>{run.durationMs}ms</td>
-                    <td>
-                      <span className={`status-pill ${run.status}`}>
-                        {run.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {view === 'visual' ? (
+        <>
+          <div className="stats">
+            <span>Comparisons: <strong>{comparisons}</strong></span>
+            <span>Swaps: <strong>{swaps}</strong></span>
           </div>
-        )}
-      </div>
 
-      <div className="array-container">
-        {array.map((bar, idx) => (
-          <div
-            key={idx}
-            className={`array-bar ${bar.state}`}
-            style={{
-              height: `${bar.value}px`,
-              width: `${Math.max(800 / arraySize - 2, 2)}px`,
-            }}
-          />
-        ))}
-      </div>
+          <div className="history-card">
+            <div className="history-header">
+              <h3>Recent Runs</h3>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setRunHistory([])}
+                disabled={isSorting || runHistory.length === 0}
+              >
+                Clear History
+              </button>
+            </div>
 
-      <div className="algorithm-info">
-        <h3>{ALGORITHM_INFO[algorithm].name}</h3>
-        <p>{ALGORITHM_INFO[algorithm].description}</p>
-        <div className="complexity">
-          <span>Time: <code>{ALGORITHM_INFO[algorithm].timeComplexity}</code></span>
-          <span>Space: <code>{ALGORITHM_INFO[algorithm].spaceComplexity}</code></span>
-        </div>
-      </div>
+            {runHistory.length === 0 ? (
+              <p className="history-empty">No runs yet. Start sorting to build history.</p>
+            ) : (
+              <div className="history-table-wrapper">
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Algorithm</th>
+                      <th>Pivot</th>
+                      <th>Size</th>
+                      <th>Speed</th>
+                      <th>Comparisons</th>
+                      <th>Swaps</th>
+                      <th>Duration</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {runHistory.map((run) => (
+                      <tr key={run.id}>
+                        <td>{run.timestamp}</td>
+                        <td>{ALGORITHM_INFO[run.algorithm].name}</td>
+                        <td>{run.pivotStrategy ? PIVOT_LABELS[run.pivotStrategy] : '-'}</td>
+                        <td>{run.arraySize}</td>
+                        <td>{run.speed}%</td>
+                        <td>{run.comparisons}</td>
+                        <td>{run.swaps}</td>
+                        <td>{run.durationMs}ms</td>
+                        <td>
+                          <span className={`status-pill ${run.status}`}>
+                            {run.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="array-container">
+            {array.map((bar, idx) => (
+              <div
+                key={idx}
+                className={`array-bar ${bar.state}`}
+                style={{
+                  height: `${bar.value}px`,
+                  width: `${Math.max(800 / arraySize - 2, 2)}px`,
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="algorithm-info">
+            <h3>{ALGORITHM_INFO[algorithm].name}</h3>
+            <p>{ALGORITHM_INFO[algorithm].description}</p>
+            <div className="complexity">
+              <span>Time: <code>{ALGORITHM_INFO[algorithm].timeComplexity}</code></span>
+              <span>Space: <code>{ALGORITHM_INFO[algorithm].spaceComplexity}</code></span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <section className="sorting-code-section" aria-label="C plus plus implementations for sorting algorithms">
+          <div className="sorting-code-header">
+            <h3>C++ Implementations</h3>
+            <span>Includes all sorting algorithms used in this visualizer.</span>
+          </div>
+
+          <div className="sorting-code-toolbar">
+            <label>Algorithm:</label>
+            <select
+              value={cppAlgorithm}
+              onChange={(e) => setCppAlgorithm(e.target.value as SortingAlgorithm)}
+            >
+              <option value="bubble">Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
+              <option value="insertion">Insertion Sort</option>
+              <option value="merge">Merge Sort</option>
+              <option value="quick">Quick Sort</option>
+              <option value="heap">Heap Sort</option>
+              <option value="shell">Shell Sort</option>
+            </select>
+          </div>
+
+          <div className="sorting-code-stack">
+            <article className="sorting-code-card">
+              <h4>{SORTING_CPP_IMPLEMENTATIONS[cppAlgorithm].title}</h4>
+              <div className="sorting-code-block">
+                <pre>{SORTING_CPP_IMPLEMENTATIONS[cppAlgorithm].source}</pre>
+              </div>
+            </article>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

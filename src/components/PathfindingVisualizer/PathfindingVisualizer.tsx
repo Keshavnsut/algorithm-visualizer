@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import './PathfindingVisualizer.css'
+import bfsCppSource from './cpp/bfs.cpp?raw'
+import dfsCppSource from './cpp/dfs.cpp?raw'
+import dijkstraCppSource from './cpp/dijkstra.cpp?raw'
+import astarCppSource from './cpp/astar.cpp?raw'
 
 type Algorithm = 'bfs' | 'dfs' | 'dijkstra' | 'astar'
 type NodeState = 'default' | 'start' | 'end' | 'visited' | 'path' | 'current'
+type PathfindingView = 'visual' | 'cpp'
 
 interface GraphNode {
   id: number
@@ -120,10 +125,19 @@ const PRESET_GRAPHS = {
   },
 }
 
+const PATHFINDING_CPP_IMPLEMENTATIONS: Record<Algorithm, { title: string; source: string }> = {
+  bfs: { title: 'Breadth-First Search (BFS)', source: bfsCppSource },
+  dfs: { title: 'Depth-First Search (DFS)', source: dfsCppSource },
+  dijkstra: { title: "Dijkstra's Algorithm", source: dijkstraCppSource },
+  astar: { title: 'A* Search', source: astarCppSource },
+}
+
 function PathfindingVisualizer() {
   const [nodes, setNodes] = useState<GraphNode[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
   const [algorithm, setAlgorithm] = useState<Algorithm>('bfs')
+  const [view, setView] = useState<PathfindingView>('visual')
+  const [cppAlgorithm, setCppAlgorithm] = useState<Algorithm>('bfs')
   const [isRunning, setIsRunning] = useState(false)
   const [speed, setSpeed] = useState(50)
   const [startNode, setStartNode] = useState<number>(0)
@@ -547,7 +561,11 @@ function PathfindingVisualizer() {
           <label>Algorithm:</label>
           <select
             value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value as Algorithm)}
+            onChange={(e) => {
+              const selected = e.target.value as Algorithm
+              setAlgorithm(selected)
+              setCppAlgorithm(selected)
+            }}
             disabled={isRunning}
           >
             <option value="bfs">BFS</option>
@@ -614,7 +632,26 @@ function PathfindingVisualizer() {
         )}
       </div>
 
-      {selectedNode !== null && mode === 'select' && (
+      <div className="pathfinding-view-toggle" role="tablist" aria-label="Pathfinding section view">
+        <button
+          type="button"
+          className={`pathfinding-view-btn ${view === 'visual' ? 'active' : ''}`}
+          onClick={() => setView('visual')}
+          aria-selected={view === 'visual'}
+        >
+          Visualization
+        </button>
+        <button
+          type="button"
+          className={`pathfinding-view-btn ${view === 'cpp' ? 'active' : ''}`}
+          onClick={() => setView('cpp')}
+          aria-selected={view === 'cpp'}
+        >
+          C++ Code
+        </button>
+      </div>
+
+      {view === 'visual' && selectedNode !== null && mode === 'select' && (
         <div className="node-controls">
           <span>Node {selectedNode} selected</span>
           <button className="btn btn-success btn-sm" onClick={setAsStart} disabled={selectedNode === endNode}>
@@ -626,143 +663,176 @@ function PathfindingVisualizer() {
         </div>
       )}
 
-      {mode === 'addEdge' && edgeStart !== null && (
+      {view === 'visual' && mode === 'addEdge' && edgeStart !== null && (
         <div className="mode-hint">
           Click another node to connect to Node {edgeStart}
         </div>
       )}
 
-      <div className="graph-container">
-        <svg
-          ref={svgRef}
-          className="graph-svg"
-          onClick={handleSvgClick}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          {/* Edges */}
-          {edges.map((edge, idx) => {
-            const from = nodes.find(n => n.id === edge.from)
-            const to = nodes.find(n => n.id === edge.to)
-            if (!from || !to) return null
-            
-            const mid = getEdgeMidpoint(edge)
-            const isPath = (from.state === 'path' || from.state === 'start') && 
-                          (to.state === 'path' || to.state === 'end')
-            
-            return (
-              <g key={idx}>
-                <line
-                  x1={from.x}
-                  y1={from.y}
-                  x2={to.x}
-                  y2={to.y}
-                  className={`edge ${isPath ? 'path' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (mode === 'delete' && !isRunning) {
-                      setEdges(prev => prev.filter((_, i) => i !== idx))
-                    }
-                  }}
-                />
-                {(algorithm === 'dijkstra' || algorithm === 'astar') && (
-                  <g>
-                    <rect
-                      x={mid.x - 12}
-                      y={mid.y - 10}
-                      width="24"
-                      height="20"
-                      rx="4"
-                      className="edge-weight-bg"
+      {view === 'visual' ? (
+        <>
+          <div className="graph-container">
+            <svg
+              ref={svgRef}
+              className="graph-svg"
+              onClick={handleSvgClick}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {/* Edges */}
+              {edges.map((edge, idx) => {
+                const from = nodes.find(n => n.id === edge.from)
+                const to = nodes.find(n => n.id === edge.to)
+                if (!from || !to) return null
+                
+                const mid = getEdgeMidpoint(edge)
+                const isPath = (from.state === 'path' || from.state === 'start') && 
+                              (to.state === 'path' || to.state === 'end')
+                
+                return (
+                  <g key={idx}>
+                    <line
+                      x1={from.x}
+                      y1={from.y}
+                      x2={to.x}
+                      y2={to.y}
+                      className={`edge ${isPath ? 'path' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (mode === 'delete' && !isRunning) {
+                          setEdges(prev => prev.filter((_, i) => i !== idx))
+                        }
+                      }}
                     />
-                    <text
-                      x={mid.x}
-                      y={mid.y + 5}
-                      className="edge-weight"
-                    >
-                      {edge.weight}
-                    </text>
+                    {(algorithm === 'dijkstra' || algorithm === 'astar') && (
+                      <g>
+                        <rect
+                          x={mid.x - 12}
+                          y={mid.y - 10}
+                          width="24"
+                          height="20"
+                          rx="4"
+                          className="edge-weight-bg"
+                        />
+                        <text
+                          x={mid.x}
+                          y={mid.y + 5}
+                          className="edge-weight"
+                        >
+                          {edge.weight}
+                        </text>
+                      </g>
+                    )}
                   </g>
-                )}
-              </g>
-            )
-          })}
+                )
+              })}
 
-          {/* Edge being drawn */}
-          {edgeStart !== null && (
-            <line
-              x1={nodes.find(n => n.id === edgeStart)?.x ?? 0}
-              y1={nodes.find(n => n.id === edgeStart)?.y ?? 0}
-              x2={nodes.find(n => n.id === edgeStart)?.x ?? 0}
-              y2={nodes.find(n => n.id === edgeStart)?.y ?? 0}
-              className="edge drawing"
-              style={{ pointerEvents: 'none' }}
-            />
-          )}
+              {/* Edge being drawn */}
+              {edgeStart !== null && (
+                <line
+                  x1={nodes.find(n => n.id === edgeStart)?.x ?? 0}
+                  y1={nodes.find(n => n.id === edgeStart)?.y ?? 0}
+                  x2={nodes.find(n => n.id === edgeStart)?.x ?? 0}
+                  y2={nodes.find(n => n.id === edgeStart)?.y ?? 0}
+                  className="edge drawing"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
 
-          {/* Nodes */}
-          {nodes.map(node => (
-            <g key={node.id}>
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r={24}
-                className={`node ${node.state} ${selectedNode === node.id ? 'selected' : ''} ${edgeStart === node.id ? 'edge-start' : ''}`}
-                onClick={(e) => handleNodeClick(node.id, e)}
-                onMouseDown={(e) => handleNodeMouseDown(node.id, e)}
-                style={{ cursor: mode === 'select' ? 'move' : 'pointer' }}
-              />
-              <text
-                x={node.x}
-                y={node.y + 5}
-                className="node-label"
-                style={{ pointerEvents: 'none' }}
-              >
-                {node.id}
-              </text>
-            </g>
-          ))}
-        </svg>
-      </div>
+              {/* Nodes */}
+              {nodes.map(node => (
+                <g key={node.id}>
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={24}
+                    className={`node ${node.state} ${selectedNode === node.id ? 'selected' : ''} ${edgeStart === node.id ? 'edge-start' : ''}`}
+                    onClick={(e) => handleNodeClick(node.id, e)}
+                    onMouseDown={(e) => handleNodeMouseDown(node.id, e)}
+                    style={{ cursor: mode === 'select' ? 'move' : 'pointer' }}
+                  />
+                  <text
+                    x={node.x}
+                    y={node.y + 5}
+                    className="node-label"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {node.id}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </div>
 
-      <div className="legend">
-        <div className="legend-item">
-          <div className="legend-color start" />
-          <span>Start</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color end" />
-          <span>End</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color visited" />
-          <span>Visited</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color path" />
-          <span>Path</span>
-        </div>
-      </div>
+          <div className="legend">
+            <div className="legend-item">
+              <div className="legend-color start" />
+              <span>Start</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color end" />
+              <span>End</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color visited" />
+              <span>Visited</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color path" />
+              <span>Path</span>
+            </div>
+          </div>
 
-      <div className="algorithm-info">
-        <h3>{ALGORITHM_INFO[algorithm].name}</h3>
-        <p>{ALGORITHM_INFO[algorithm].description}</p>
-        <div className="complexity">
-          <span>Weighted: <code>{ALGORITHM_INFO[algorithm].weighted ? 'Yes' : 'No'}</code></span>
-          <span>Shows edge weights: <code>{ALGORITHM_INFO[algorithm].weighted ? 'Yes' : 'No'}</code></span>
-        </div>
-      </div>
+          <div className="algorithm-info">
+            <h3>{ALGORITHM_INFO[algorithm].name}</h3>
+            <p>{ALGORITHM_INFO[algorithm].description}</p>
+            <div className="complexity">
+              <span>Weighted: <code>{ALGORITHM_INFO[algorithm].weighted ? 'Yes' : 'No'}</code></span>
+              <span>Shows edge weights: <code>{ALGORITHM_INFO[algorithm].weighted ? 'Yes' : 'No'}</code></span>
+            </div>
+          </div>
 
-      <div className="instructions">
-        <h4>How to use:</h4>
-        <ul>
-          <li><strong>Select/Move:</strong> Click to select a node, drag to move it</li>
-          <li><strong>Add Node:</strong> Click on empty space to add a node</li>
-          <li><strong>Add Edge:</strong> Click two nodes to connect them</li>
-          <li><strong>Delete:</strong> Click a node or edge to remove it</li>
-        </ul>
-      </div>
+          <div className="instructions">
+            <h4>How to use:</h4>
+            <ul>
+              <li><strong>Select/Move:</strong> Click to select a node, drag to move it</li>
+              <li><strong>Add Node:</strong> Click on empty space to add a node</li>
+              <li><strong>Add Edge:</strong> Click two nodes to connect them</li>
+              <li><strong>Delete:</strong> Click a node or edge to remove it</li>
+            </ul>
+          </div>
+        </>
+      ) : (
+        <section className="pathfinding-code-section" aria-label="C plus plus implementations for pathfinding algorithms">
+          <div className="pathfinding-code-header">
+            <h3>C++ Implementations</h3>
+            <span>Includes all pathfinding algorithms used in this visualizer.</span>
+          </div>
+
+          <div className="pathfinding-code-toolbar">
+            <label>Algorithm:</label>
+            <select
+              value={cppAlgorithm}
+              onChange={(e) => setCppAlgorithm(e.target.value as Algorithm)}
+            >
+              <option value="bfs">BFS</option>
+              <option value="dfs">DFS</option>
+              <option value="dijkstra">Dijkstra's</option>
+              <option value="astar">A* Search</option>
+            </select>
+          </div>
+
+          <div className="pathfinding-code-stack">
+            <article className="pathfinding-code-card">
+              <h4>{PATHFINDING_CPP_IMPLEMENTATIONS[cppAlgorithm].title}</h4>
+              <div className="pathfinding-code-block">
+                <pre>{PATHFINDING_CPP_IMPLEMENTATIONS[cppAlgorithm].source}</pre>
+              </div>
+            </article>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

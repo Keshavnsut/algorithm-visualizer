@@ -116,6 +116,108 @@
   background: #fef3c7;
 }
 
+.sorting-view-toggle {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.sorting-view-btn {
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #3730a3;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sorting-view-btn.active {
+  background: #4338ca;
+  color: #eef2ff;
+  border-color: #4338ca;
+}
+
+.sorting-code-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 0.9rem;
+}
+
+.sorting-code-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sorting-code-header h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.sorting-code-header span {
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+.sorting-code-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.sorting-code-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.sorting-code-toolbar label {
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sorting-code-toolbar select {
+  min-width: 220px;
+}
+
+.sorting-code-card {
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0.7rem;
+}
+
+.sorting-code-card h4 {
+  margin: 0 0 0.5rem;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.sorting-code-block {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #0b1220;
+  overflow: auto;
+}
+
+.sorting-code-block pre {
+  margin: 0;
+  padding: 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #e2e8f0;
+  font-family: Consolas, 'Courier New', monospace;
+}
+
 /* Legend */
 .legend {
   display: flex;
