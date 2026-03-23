@@ -567,6 +567,57 @@
   font-size: 0.78rem;
 }
 
+.dp-recursion-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.6rem;
+}
+
+.dp-recursion-context .ctx {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.dp-recursion-context .ctx.root {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #f59e0b;
+}
+
+.dp-recursion-context .ctx.internal {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.4);
+  color: #38bdf8;
+}
+
+.dp-recursion-context .ctx.leaf {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.45);
+  color: #4ade80;
+}
+
+.dp-recursion-context .ctx.left {
+  background: rgba(217, 119, 6, 0.14);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #f59e0b;
+}
+
+.dp-recursion-context .ctx.right {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.42);
+  color: #a5b4fc;
+}
+
+.dp-recursion-context .ctx.value {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(148, 163, 184, 0.36);
+  color: #cbd5e1;
+}
+
 .dp-recursion-tree-canvas {
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 8px;
@@ -587,10 +638,23 @@
   stroke-width: 1.6;
 }
 
+.dp-recursion-edge.left {
+  stroke: rgba(217, 119, 6, 0.72);
+}
+
+.dp-recursion-edge.right {
+  stroke: rgba(129, 140, 248, 0.72);
+}
+
 .dp-recursion-node {
   fill: rgba(99, 102, 241, 0.22);
   stroke: rgba(129, 140, 248, 0.7);
   stroke-width: 1.3;
+}
+
+.dp-recursion-node.internal {
+  fill: rgba(99, 102, 241, 0.22);
+  stroke: rgba(129, 140, 248, 0.7);
 }
 
 .dp-recursion-node.root {
@@ -598,10 +662,21 @@
   stroke: rgba(245, 158, 11, 0.8);
 }
 
+.dp-recursion-node.leaf {
+  fill: rgba(34, 197, 94, 0.16);
+  stroke: rgba(34, 197, 94, 0.8);
+}
+
 .dp-recursion-node-label {
   font-family: Consolas, 'Courier New', monospace;
   font-size: 8px;
   fill: #dbeafe;
+}
+
+.dp-recursion-node-value {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 6.8px;
+  fill: #e2e8f0;
 }
 
 .house-track {

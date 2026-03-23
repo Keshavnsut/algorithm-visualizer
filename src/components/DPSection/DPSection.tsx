@@ -38,9 +38,11 @@ interface HouseDryRunRow {
 interface TreeGraphNode {
   id: string
   label: string
+  valueText: string
   x: number
   y: number
   root: boolean
+  leaf: boolean
 }
 
 interface TreeGraphEdge {
@@ -49,6 +51,7 @@ interface TreeGraphEdge {
   fromY: number
   toX: number
   toY: number
+  side: 'left' | 'right'
 }
 
 const DP_CATEGORIES = [
@@ -194,7 +197,10 @@ const buildRecursionTreeLevels = (
   return numericLevels.map((level) => level.map((value) => (value === null ? null : labelResolver(value))))
 }
 
-const buildTreeGraph = (levels: Array<Array<string | null>>) => {
+const buildTreeGraph = (
+  levels: Array<Array<string | null>>,
+  valueResolver: (label: string) => string
+) => {
   const maxNodes = Math.max(1, ...levels.map((level) => level.length))
   const width = maxNodes * 68 + 48
   const height = levels.length * 68 + 28
@@ -211,12 +217,18 @@ const buildTreeGraph = (levels: Array<Array<string | null>>) => {
     level.forEach((label, slotIndex) => {
       if (!label) return
 
+      const childrenLevel = levels[levelIndex + 1]
+      const leftChild = childrenLevel ? childrenLevel[slotIndex * 2] : null
+      const rightChild = childrenLevel ? childrenLevel[slotIndex * 2 + 1] : null
+
       const node: TreeGraphNode = {
         id: `${levelIndex}-${slotIndex}`,
         label,
+        valueText: valueResolver(label),
         x: (slotIndex + 0.5) * segment,
         y: 24 + levelIndex * 68,
         root: levelIndex === 0,
+        leaf: !leftChild && !rightChild,
       }
 
       nodeMap.set(node.id, node)
@@ -234,6 +246,7 @@ const buildTreeGraph = (levels: Array<Array<string | null>>) => {
             fromY: parent.y + 14,
             toX: node.x,
             toY: node.y - 14,
+            side: slotIndex % 2 === 0 ? 'left' : 'right',
           })
         }
       }
@@ -321,8 +334,30 @@ function DPSection() {
     () => buildRecursionTreeLevels(currentHouseIndex + 1, 5, (value) => (value <= 0 ? null : [value - 1, value - 2]), (value) => `R(${value})`),
     [currentHouseIndex]
   )
-  const climbingTreeGraph = useMemo(() => buildTreeGraph(climbingTreeLevels), [climbingTreeLevels])
-  const houseTreeGraph = useMemo(() => buildTreeGraph(houseTreeLevels), [houseTreeLevels])
+  const climbingTreeGraph = useMemo(
+    () =>
+      buildTreeGraph(climbingTreeLevels, (label) => {
+        const match = label.match(/f\((\d+)\)/)
+        if (!match) return 'value: ?'
+        const step = Number(match[1])
+        const ways = climbingStairs.dp[step]
+        return `ways=${ways ?? '?'} `
+      }),
+    [climbingTreeLevels, climbingStairs.dp]
+  )
+  const houseTreeGraph = useMemo(
+    () =>
+      buildTreeGraph(houseTreeLevels, (label) => {
+        const match = label.match(/R\((\d+)\)/)
+        if (!match) return 'value: ?'
+        const index = Number(match[1])
+        const best = houseRobber.dp[index]
+        return `best=${best ?? '?'} `
+      }),
+    [houseTreeLevels, houseRobber.dp]
+  )
+  const climbingTreeDepth = climbingTreeLevels.length
+  const houseTreeDepth = houseTreeLevels.length
 
   useEffect(() => {
     setCurrentStep(Math.min(1, stairsCount))
@@ -744,7 +779,15 @@ function DPSection() {
               <section className="dp-recursion-tree-section" aria-label="Climbing stairs recursion tree">
                 <div className="dp-recursion-tree-header">
                   <h4>Recursion Tree (Naive)</h4>
-                  <span>Current root: f({currentStep})</span>
+                  <span>Root: f({currentStep}) | Depth: {climbingTreeDepth} | Nodes: {climbingTreeGraph.nodes.length}</span>
+                </div>
+                <div className="dp-recursion-context">
+                  <span className="ctx root">Root</span>
+                  <span className="ctx internal">Internal</span>
+                  <span className="ctx leaf">Leaf / Base</span>
+                  <span className="ctx left">Left branch (n-1)</span>
+                  <span className="ctx right">Right branch (n-2)</span>
+                  <span className="ctx value">Node value: ways at that state</span>
                 </div>
                 <div className="dp-recursion-tree-canvas">
                   <svg
@@ -754,7 +797,7 @@ function DPSection() {
                     {climbingTreeGraph.edges.map((edge) => (
                       <line
                         key={edge.id}
-                        className="dp-recursion-edge"
+                        className={`dp-recursion-edge ${edge.side}`}
                         x1={edge.fromX}
                         y1={edge.fromY}
                         x2={edge.toX}
@@ -764,9 +807,12 @@ function DPSection() {
 
                     {climbingTreeGraph.nodes.map((node) => (
                       <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
-                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''}`} r="15" />
+                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''} ${node.leaf ? 'leaf' : 'internal'}`} r="15" />
                         <text className="dp-recursion-node-label" textAnchor="middle" dominantBaseline="middle">
                           {node.label}
+                        </text>
+                        <text className="dp-recursion-node-value" textAnchor="middle" y="26">
+                          {node.valueText}
                         </text>
                       </g>
                     ))}
@@ -1061,7 +1107,15 @@ function DPSection() {
               <section className="dp-recursion-tree-section" aria-label="House robber recursion tree">
                 <div className="dp-recursion-tree-header">
                   <h4>Recursion Tree (Naive)</h4>
-                  <span>Current root: R({currentHouseIndex + 1})</span>
+                  <span>Root: R({currentHouseIndex + 1}) | Depth: {houseTreeDepth} | Nodes: {houseTreeGraph.nodes.length}</span>
+                </div>
+                <div className="dp-recursion-context">
+                  <span className="ctx root">Root</span>
+                  <span className="ctx internal">Internal</span>
+                  <span className="ctx leaf">Leaf / Base</span>
+                  <span className="ctx left">Left branch (i-1)</span>
+                  <span className="ctx right">Right branch (i-2)</span>
+                  <span className="ctx value">Node value: max loot till that state</span>
                 </div>
                 <div className="dp-recursion-tree-canvas">
                   <svg
@@ -1071,7 +1125,7 @@ function DPSection() {
                     {houseTreeGraph.edges.map((edge) => (
                       <line
                         key={edge.id}
-                        className="dp-recursion-edge"
+                        className={`dp-recursion-edge ${edge.side}`}
                         x1={edge.fromX}
                         y1={edge.fromY}
                         x2={edge.toX}
@@ -1081,9 +1135,12 @@ function DPSection() {
 
                     {houseTreeGraph.nodes.map((node) => (
                       <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
-                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''}`} r="15" />
+                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''} ${node.leaf ? 'leaf' : 'internal'}`} r="15" />
                         <text className="dp-recursion-node-label" textAnchor="middle" dominantBaseline="middle">
                           {node.label}
+                        </text>
+                        <text className="dp-recursion-node-value" textAnchor="middle" y="26">
+                          {node.valueText}
                         </text>
                       </g>
                     ))}
