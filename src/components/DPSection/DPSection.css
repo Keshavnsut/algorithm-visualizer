@@ -421,6 +421,20 @@
   gap: 0.5rem;
 }
 
+.dp-text-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 0.45rem 0.55rem;
+  font-size: 0.82rem;
+}
+
+.dp-text-input:focus {
+  outline: 2px solid rgba(56, 189, 248, 0.35);
+  outline-offset: 1px;
+}
+
 .dp-problem-controls label {
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -499,6 +513,29 @@
 .dp-answer strong {
   color: var(--accent-color);
   font-size: 1.1rem;
+}
+
+.dp-matrix-wrap {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.45);
+  padding: 0.65rem;
+  overflow-x: auto;
+}
+
+.dp-matrix-table {
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.dp-matrix-table td {
+  min-width: 42px;
+  text-align: center;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  padding: 0.38rem;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .dp-stair-stage {

@@ -4,6 +4,10 @@ import climbingStairsCppSource from './cpp/climbing_stairs.cpp?raw'
 import climbingStairsMemoCppSource from './cpp/climbing_stairs_memo.cpp?raw'
 import houseRobberCppSource from './cpp/house_robber.cpp?raw'
 import houseRobberMemoCppSource from './cpp/house_robber_memo.cpp?raw'
+import coinChangeCppSource from './cpp/coin_change.cpp?raw'
+import uniquePathsCppSource from './cpp/unique_paths.cpp?raw'
+import lcsCppSource from './cpp/lcs.cpp?raw'
+import editDistanceCppSource from './cpp/edit_distance.cpp?raw'
 
 interface ClimbingStairsResult {
   ways: number
@@ -33,6 +37,67 @@ interface HouseDryRunRow {
   skip: number
   take: number
   chosen: number
+}
+
+interface CoinChangeResult {
+  minCoins: number
+  dp: number[]
+  transitions: string[]
+}
+
+interface CoinChangeDryRunRow {
+  amount: number
+  choices: string
+  result: number
+}
+
+interface UniquePathsResult {
+  paths: number
+  dp: number[][]
+  transitions: string[]
+}
+
+interface UniquePathsDryRunRow {
+  row: number
+  col: number
+  fromTop: number
+  fromLeft: number
+  value: number
+}
+
+interface LcsResult {
+  length: number
+  dp: number[][]
+  transitions: string[]
+}
+
+interface LcsDryRunRow {
+  row: number
+  col: number
+  charA: string
+  charB: string
+  fromTop: number
+  fromLeft: number
+  fromDiag: number
+  value: number
+}
+
+interface EditDistanceResult {
+  distance: number
+  dp: number[][]
+  transitions: string[]
+}
+
+interface EditDistanceDryRunRow {
+  row: number
+  col: number
+  charA: string
+  charB: string
+  insertCost: number
+  deleteCost: number
+  replaceCost: number
+  value: number
+  action: string
 }
 
 interface TreeGraphNode {
@@ -268,6 +333,290 @@ const buildHouseRobberDryRun = (houses: number[], dp: number[]): HouseDryRunRow[
   return rows
 }
 
+const parseCoins = (raw: string): number[] => {
+  const parsed = raw
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value) && value > 0)
+
+  const uniqueSorted = Array.from(new Set(parsed)).sort((a, b) => a - b)
+  return uniqueSorted.length > 0 ? uniqueSorted : [1, 2, 5]
+}
+
+const solveCoinChange = (coins: number[], amount: number): CoinChangeResult => {
+  const INF = Number.MAX_SAFE_INTEGER
+  const dp = Array.from({ length: amount + 1 }, () => INF)
+  const transitions: string[] = []
+  dp[0] = 0
+  transitions.push('dp[0] = 0')
+
+  for (let a = 1; a <= amount; a++) {
+    let best = INF
+    for (const coin of coins) {
+      if (coin <= a && dp[a - coin] !== INF) {
+        best = Math.min(best, dp[a - coin] + 1)
+      }
+    }
+    dp[a] = best
+    transitions.push(
+      best === INF
+        ? `dp[${a}] = INF (not reachable yet)`
+        : `dp[${a}] = ${best}`
+    )
+  }
+
+  return {
+    minCoins: dp[amount] === INF ? -1 : dp[amount],
+    dp,
+    transitions,
+  }
+}
+
+const buildCoinChangeDryRun = (coins: number[], dp: number[]): CoinChangeDryRunRow[] => {
+  const rows: CoinChangeDryRunRow[] = []
+  const INF = Number.MAX_SAFE_INTEGER
+
+  for (let amount = 1; amount < dp.length; amount++) {
+    const choices = coins
+      .filter((coin) => coin <= amount)
+      .map((coin) => {
+        const prev = dp[amount - coin]
+        return prev === INF ? `${coin}:INF` : `${coin}:${prev + 1}`
+      })
+      .join(' | ')
+
+    rows.push({
+      amount,
+      choices: choices || 'no valid coin',
+      result: dp[amount] === INF ? -1 : dp[amount],
+    })
+  }
+
+  return rows
+}
+
+const solveUniquePaths = (rows: number, cols: number): UniquePathsResult => {
+  const dp = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+  const transitions: string[] = []
+
+  for (let r = 0; r < rows; r++) dp[r][0] = 1
+  for (let c = 0; c < cols; c++) dp[0][c] = 1
+  transitions.push('First row and first column are 1 (only one way).')
+
+  for (let r = 1; r < rows; r++) {
+    for (let c = 1; c < cols; c++) {
+      dp[r][c] = dp[r - 1][c] + dp[r][c - 1]
+      transitions.push(`dp[${r}][${c}] = dp[${r - 1}][${c}] + dp[${r}][${c - 1}] = ${dp[r][c]}`)
+    }
+  }
+
+  return {
+    paths: dp[rows - 1][cols - 1],
+    dp,
+    transitions,
+  }
+}
+
+const buildUniquePathsDryRun = (dp: number[][]): UniquePathsDryRunRow[] => {
+  const rows: UniquePathsDryRunRow[] = []
+  for (let r = 1; r < dp.length; r++) {
+    for (let c = 1; c < dp[0].length; c++) {
+      rows.push({
+        row: r,
+        col: c,
+        fromTop: dp[r - 1][c],
+        fromLeft: dp[r][c - 1],
+        value: dp[r][c],
+      })
+    }
+  }
+  return rows
+}
+
+const solveLcs = (a: string, b: string): LcsResult => {
+  const rows = a.length + 1
+  const cols = b.length + 1
+  const dp = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+  const transitions: string[] = []
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1
+        transitions.push(`dp[${i}][${j}] = dp[${i - 1}][${j - 1}] + 1 = ${dp[i][j]} (${a[i - 1]} matches)`)
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+        transitions.push(`dp[${i}][${j}] = max(dp[${i - 1}][${j}], dp[${i}][${j - 1}]) = ${dp[i][j]}`)
+      }
+    }
+  }
+
+  return { length: dp[a.length][b.length], dp, transitions }
+}
+
+const buildLcsDryRun = (a: string, b: string, dp: number[][]): LcsDryRunRow[] => {
+  const rows: LcsDryRunRow[] = []
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      rows.push({
+        row: i,
+        col: j,
+        charA: a[i - 1],
+        charB: b[j - 1],
+        fromTop: dp[i - 1][j],
+        fromLeft: dp[i][j - 1],
+        fromDiag: dp[i - 1][j - 1],
+        value: dp[i][j],
+      })
+    }
+  }
+  return rows
+}
+
+const solveEditDistance = (a: string, b: string): EditDistanceResult => {
+  const rows = a.length + 1
+  const cols = b.length + 1
+  const dp = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+  const transitions: string[] = []
+
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j
+  transitions.push('Initialize first row/column with insertion/deletion counts.')
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1]
+        transitions.push(`dp[${i}][${j}] = dp[${i - 1}][${j - 1}] = ${dp[i][j]} (chars match)`)
+      } else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+        transitions.push(`dp[${i}][${j}] = 1 + min(del, ins, rep) = ${dp[i][j]}`)
+      }
+    }
+  }
+
+  return { distance: dp[a.length][b.length], dp, transitions }
+}
+
+const buildEditDistanceDryRun = (a: string, b: string, dp: number[][]): EditDistanceDryRunRow[] => {
+  const rows: EditDistanceDryRunRow[] = []
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const deleteCost = dp[i - 1][j] + 1
+      const insertCost = dp[i][j - 1] + 1
+      const replaceCost = dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      let action = 'replace'
+      if (a[i - 1] === b[j - 1]) action = 'match'
+      else if (dp[i][j] === insertCost) action = 'insert'
+      else if (dp[i][j] === deleteCost) action = 'delete'
+
+      rows.push({
+        row: i,
+        col: j,
+        charA: a[i - 1],
+        charB: b[j - 1],
+        insertCost,
+        deleteCost,
+        replaceCost,
+        value: dp[i][j],
+        action,
+      })
+    }
+  }
+
+  return rows
+}
+
+const buildCoinNaiveCallCounts = (maxAmount: number, coins: number[]): number[] => {
+  const CAP = 1_000_000_000
+  const calls = Array.from({ length: maxAmount + 1 }, () => 0)
+  calls[0] = 1
+
+  for (let amount = 1; amount <= maxAmount; amount++) {
+    let total = 1
+    for (const coin of coins) {
+      if (coin <= amount) {
+        total += calls[amount - coin]
+        if (total > CAP) {
+          total = CAP
+          break
+        }
+      }
+    }
+    calls[amount] = total
+  }
+
+  return calls
+}
+
+const buildUniqueNaiveCallCounts = (rows: number, cols: number): number[][] => {
+  const CAP = 1_000_000_000
+  const calls = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+
+  for (let r = 0; r < rows; r++) {
+    calls[r][0] = 1
+  }
+  for (let c = 0; c < cols; c++) {
+    calls[0][c] = 1
+  }
+
+  for (let r = 1; r < rows; r++) {
+    for (let c = 1; c < cols; c++) {
+      calls[r][c] = Math.min(CAP, 1 + calls[r - 1][c] + calls[r][c - 1])
+    }
+  }
+
+  return calls
+}
+
+const buildLcsNaiveCallCounts = (a: string, b: string): number[][] => {
+  const CAP = 1_000_000_000
+  const rows = a.length + 1
+  const cols = b.length + 1
+  const calls = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+
+  for (let i = 0; i <= a.length; i++) calls[i][0] = 1
+  for (let j = 0; j <= b.length; j++) calls[0][j] = 1
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        calls[i][j] = Math.min(CAP, 1 + calls[i - 1][j - 1])
+      } else {
+        calls[i][j] = Math.min(CAP, 1 + calls[i - 1][j] + calls[i][j - 1])
+      }
+    }
+  }
+
+  return calls
+}
+
+const buildEditNaiveCallCounts = (a: string, b: string): number[][] => {
+  const CAP = 1_000_000_000
+  const rows = a.length + 1
+  const cols = b.length + 1
+  const calls = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+
+  for (let i = 0; i <= a.length; i++) calls[i][0] = 1
+  for (let j = 0; j <= b.length; j++) calls[0][j] = 1
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        calls[i][j] = Math.min(CAP, 1 + calls[i - 1][j - 1])
+      } else {
+        calls[i][j] = Math.min(CAP, 1 + calls[i - 1][j] + calls[i][j - 1] + calls[i - 1][j - 1])
+      }
+    }
+  }
+
+  return calls
+}
+
+const encodeCell = (row: number, col: number) => row * 100 + col
+const decodeCell = (value: number) => ({ row: Math.floor(value / 100), col: value % 100 })
+
 type ProblemView = 'visual' | 'cpp'
 type QuickStartMode = 'visual' | 'tree' | 'dryrun' | 'cpp'
 
@@ -317,28 +666,28 @@ const DP_PROBLEM_DIRECTORY: Array<{
     title: 'Coin Change',
     tag: '1D DP',
     summary: 'Minimum coins needed to make a target amount.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'unique-paths',
     title: 'Unique Paths',
     tag: '2D DP',
     summary: 'Count grid paths with right/down moves.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'lcs',
     title: 'Longest Common Subsequence',
     tag: '2D DP',
     summary: 'Find longest subsequence common to two strings.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'edit-distance',
     title: 'Edit Distance',
     tag: '2D DP',
     summary: 'Minimum operations to convert one string into another.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'knapsack-01',
@@ -446,6 +795,30 @@ function DPSection() {
   const [isHousePlaying, setIsHousePlaying] = useState(false)
   const [showHouseExplanation, setShowHouseExplanation] = useState(true)
 
+  const [coinProblemView, setCoinProblemView] = useState<ProblemView>('visual')
+  const [coinVisualMode, setCoinVisualMode] = useState<VisualMode>('dp')
+  const [coinAmount, setCoinAmount] = useState(11)
+  const [coinInput, setCoinInput] = useState('1,2,5')
+  const [showCoinExplanation, setShowCoinExplanation] = useState(true)
+
+  const [uniqueProblemView, setUniqueProblemView] = useState<ProblemView>('visual')
+  const [uniqueVisualMode, setUniqueVisualMode] = useState<VisualMode>('dp')
+  const [gridRows, setGridRows] = useState(3)
+  const [gridCols, setGridCols] = useState(5)
+  const [showUniqueExplanation, setShowUniqueExplanation] = useState(true)
+
+  const [lcsProblemView, setLcsProblemView] = useState<ProblemView>('visual')
+  const [lcsVisualMode, setLcsVisualMode] = useState<VisualMode>('dp')
+  const [lcsFirst, setLcsFirst] = useState('abcde')
+  const [lcsSecond, setLcsSecond] = useState('ace')
+  const [showLcsExplanation, setShowLcsExplanation] = useState(true)
+
+  const [editProblemView, setEditProblemView] = useState<ProblemView>('visual')
+  const [editVisualMode, setEditVisualMode] = useState<VisualMode>('dp')
+  const [editFirst, setEditFirst] = useState('horse')
+  const [editSecond, setEditSecond] = useState('ros')
+  const [showEditExplanation, setShowEditExplanation] = useState(true)
+
   const climbingStairs = useMemo(() => solveClimbingStairs(stairsCount), [stairsCount])
   const dryRunRows = useMemo(() => buildClimbingStairsDryRun(climbingStairs.dp), [climbingStairs.dp])
   const recursionCallCounts = useMemo(() => buildNaiveRecursionCallCounts(stairsCount), [stairsCount])
@@ -484,6 +857,127 @@ function DPSection() {
   )
   const climbingTreeDepth = climbingTreeLevels.length
   const houseTreeDepth = houseTreeLevels.length
+  const coins = useMemo(() => parseCoins(coinInput), [coinInput])
+  const coinChange = useMemo(() => solveCoinChange(coins, coinAmount), [coins, coinAmount])
+  const coinDryRunRows = useMemo(() => buildCoinChangeDryRun(coins, coinChange.dp), [coins, coinChange.dp])
+  const coinNaiveCallCounts = useMemo(() => buildCoinNaiveCallCounts(coinAmount, coins), [coinAmount, coins])
+  const coinTreeLevels = useMemo(() => {
+    const firstCoin = coins[0]
+    const secondCoin = coins[1] ?? coins[0]
+    return buildRecursionTreeLevels(
+      coinAmount,
+      5,
+      (value) => (value <= 0 ? null : [Math.max(0, value - firstCoin), Math.max(0, value - secondCoin)]),
+      (value) => `C(${value})`
+    )
+  }, [coinAmount, coins])
+  const coinTreeGraph = useMemo(
+    () =>
+      buildTreeGraph(coinTreeLevels, (label) => {
+        const match = label.match(/C\((\d+)\)/)
+        if (!match) return 'value: ?'
+        const amount = Number(match[1])
+        const value = coinChange.dp[amount]
+        return `dp=${value === Number.MAX_SAFE_INTEGER ? 'INF' : value}`
+      }),
+    [coinTreeLevels, coinChange.dp]
+  )
+  const uniquePaths = useMemo(() => solveUniquePaths(gridRows, gridCols), [gridRows, gridCols])
+  const uniqueDryRunRows = useMemo(() => buildUniquePathsDryRun(uniquePaths.dp), [uniquePaths.dp])
+  const uniqueNaiveCallCounts = useMemo(() => buildUniqueNaiveCallCounts(gridRows, gridCols), [gridRows, gridCols])
+  const uniqueTreeLevels = useMemo(
+    () =>
+      buildRecursionTreeLevels(
+        encodeCell(gridRows - 1, gridCols - 1),
+        5,
+        (value) => {
+          const { row, col } = decodeCell(value)
+          if (row === 0 || col === 0) return null
+          return [encodeCell(row - 1, col), encodeCell(row, col - 1)]
+        },
+        (value) => {
+          const { row, col } = decodeCell(value)
+          return `U(${row},${col})`
+        }
+      ),
+    [gridRows, gridCols]
+  )
+  const uniqueTreeGraph = useMemo(
+    () =>
+      buildTreeGraph(uniqueTreeLevels, (label) => {
+        const match = label.match(/U\((\d+),(\d+)\)/)
+        if (!match) return 'value: ?'
+        const row = Number(match[1])
+        const col = Number(match[2])
+        return `dp=${uniquePaths.dp[row]?.[col] ?? '?'} `
+      }),
+    [uniqueTreeLevels, uniquePaths.dp]
+  )
+  const lcsResult = useMemo(() => solveLcs(lcsFirst, lcsSecond), [lcsFirst, lcsSecond])
+  const lcsDryRunRows = useMemo(() => buildLcsDryRun(lcsFirst, lcsSecond, lcsResult.dp), [lcsFirst, lcsSecond, lcsResult.dp])
+  const lcsNaiveCallCounts = useMemo(() => buildLcsNaiveCallCounts(lcsFirst, lcsSecond), [lcsFirst, lcsSecond])
+  const lcsTreeLevels = useMemo(
+    () =>
+      buildRecursionTreeLevels(
+        encodeCell(lcsFirst.length, lcsSecond.length),
+        5,
+        (value) => {
+          const { row, col } = decodeCell(value)
+          if (row === 0 || col === 0) return null
+          return [encodeCell(row - 1, col), encodeCell(row, col - 1)]
+        },
+        (value) => {
+          const { row, col } = decodeCell(value)
+          return `L(${row},${col})`
+        }
+      ),
+    [lcsFirst.length, lcsSecond.length]
+  )
+  const lcsTreeGraph = useMemo(
+    () =>
+      buildTreeGraph(lcsTreeLevels, (label) => {
+        const match = label.match(/L\((\d+),(\d+)\)/)
+        if (!match) return 'value: ?'
+        const row = Number(match[1])
+        const col = Number(match[2])
+        return `dp=${lcsResult.dp[row]?.[col] ?? '?'} `
+      }),
+    [lcsTreeLevels, lcsResult.dp]
+  )
+  const editDistanceResult = useMemo(() => solveEditDistance(editFirst, editSecond), [editFirst, editSecond])
+  const editDryRunRows = useMemo(
+    () => buildEditDistanceDryRun(editFirst, editSecond, editDistanceResult.dp),
+    [editFirst, editSecond, editDistanceResult.dp]
+  )
+  const editNaiveCallCounts = useMemo(() => buildEditNaiveCallCounts(editFirst, editSecond), [editFirst, editSecond])
+  const editTreeLevels = useMemo(
+    () =>
+      buildRecursionTreeLevels(
+        encodeCell(editFirst.length, editSecond.length),
+        5,
+        (value) => {
+          const { row, col } = decodeCell(value)
+          if (row === 0 || col === 0) return null
+          return [encodeCell(row - 1, col), encodeCell(row, col - 1)]
+        },
+        (value) => {
+          const { row, col } = decodeCell(value)
+          return `E(${row},${col})`
+        }
+      ),
+    [editFirst.length, editSecond.length]
+  )
+  const editTreeGraph = useMemo(
+    () =>
+      buildTreeGraph(editTreeLevels, (label) => {
+        const match = label.match(/E\((\d+),(\d+)\)/)
+        if (!match) return 'value: ?'
+        const row = Number(match[1])
+        const col = Number(match[2])
+        return `dp=${editDistanceResult.dp[row]?.[col] ?? '?'} `
+      }),
+    [editTreeLevels, editDistanceResult.dp]
+  )
 
   useEffect(() => {
     setCurrentStep(Math.min(1, stairsCount))
@@ -554,6 +1048,26 @@ function DPSection() {
   const houseImprovement = currentHouseDpStates > 0
     ? (currentHouseRecCalls / currentHouseDpStates).toFixed(1)
     : '0.0'
+  const coinRecCalls = coinNaiveCallCounts[coinAmount] ?? 1
+  const coinDpStates = coinAmount + 1
+  const coinDpTransitions = Math.max(0, coinAmount)
+  const coinImprovement = coinDpStates > 0 ? (coinRecCalls / coinDpStates).toFixed(1) : '0.0'
+  const coinTreeDepth = coinTreeLevels.length
+  const uniqueRecCalls = uniqueNaiveCallCounts[gridRows - 1]?.[gridCols - 1] ?? 1
+  const uniqueDpStates = gridRows * gridCols
+  const uniqueDpTransitions = Math.max(0, (gridRows - 1) * (gridCols - 1))
+  const uniqueImprovement = uniqueDpStates > 0 ? (uniqueRecCalls / uniqueDpStates).toFixed(1) : '0.0'
+  const uniqueTreeDepth = uniqueTreeLevels.length
+  const lcsRecCalls = lcsNaiveCallCounts[lcsFirst.length]?.[lcsSecond.length] ?? 1
+  const lcsDpStates = (lcsFirst.length + 1) * (lcsSecond.length + 1)
+  const lcsDpTransitions = lcsFirst.length * lcsSecond.length
+  const lcsImprovement = lcsDpStates > 0 ? (lcsRecCalls / lcsDpStates).toFixed(1) : '0.0'
+  const lcsTreeDepth = lcsTreeLevels.length
+  const editRecCalls = editNaiveCallCounts[editFirst.length]?.[editSecond.length] ?? 1
+  const editDpStates = (editFirst.length + 1) * (editSecond.length + 1)
+  const editDpTransitions = editFirst.length * editSecond.length
+  const editImprovement = editDpStates > 0 ? (editRecCalls / editDpStates).toFixed(1) : '0.0'
+  const editTreeDepth = editTreeLevels.length
 
   const STEP_WIDTH = 52
   const STEP_GAP = 5
@@ -622,6 +1136,46 @@ function DPSection() {
       } else {
         setHouseProblemView('visual')
         setHouseVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
+      }
+      return
+    }
+
+    if (targetProblem === 'coin-change') {
+      if (quickStartMode === 'cpp') {
+        setCoinProblemView('cpp')
+      } else {
+        setCoinProblemView('visual')
+        setCoinVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
+      }
+      return
+    }
+
+    if (targetProblem === 'unique-paths') {
+      if (quickStartMode === 'cpp') {
+        setUniqueProblemView('cpp')
+      } else {
+        setUniqueProblemView('visual')
+        setUniqueVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
+      }
+      return
+    }
+
+    if (targetProblem === 'lcs') {
+      if (quickStartMode === 'cpp') {
+        setLcsProblemView('cpp')
+      } else {
+        setLcsProblemView('visual')
+        setLcsVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
+      }
+      return
+    }
+
+    if (targetProblem === 'edit-distance') {
+      if (quickStartMode === 'cpp') {
+        setEditProblemView('cpp')
+      } else {
+        setEditProblemView('visual')
+        setEditVisualMode(quickStartMode === 'visual' ? 'dp' : quickStartMode)
       }
     }
   }
@@ -1512,7 +2066,1011 @@ function DPSection() {
       </article>
       )}
 
-      {selectedProblem !== null && selectedProblem !== 'climbing' && selectedProblem !== 'house' && (
+      {selectedProblem === 'coin-change' && (
+      <article className="dp-problem-card" id="dp-problem-coin-change">
+        <div className="dp-problem-header">
+          <h3>Problem 3: Coin Change</h3>
+          <span className="dp-problem-tag">1D DP</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => setSelectedProblem(null)}
+          >
+            Back to Problem List
+          </button>
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => handleSelectProblem('unique-paths')}
+          >
+            Go to Unique Paths
+          </button>
+        </div>
+
+        <p className="dp-problem-description">
+          Given coin denominations and a target amount, find the minimum number of coins needed.
+          If no combination can make the amount, return -1.
+        </p>
+
+        <section className="dp-explanation" aria-label="Coin change explanation">
+          <div className="dp-explanation-header">
+            <h4>Explanation</h4>
+            <button
+              type="button"
+              className="dp-explain-toggle"
+              onClick={() => setShowCoinExplanation((prev) => !prev)}
+            >
+              {showCoinExplanation ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showCoinExplanation && (
+            <div className="dp-explanation-grid">
+              <article className="dp-explanation-card">
+                <h5>Recurrence</h5>
+                <p>dp[a] = min(dp[a - coin] + 1) for all valid coins</p>
+                <p>Base case: dp[0] = 0</p>
+              </article>
+              <article className="dp-explanation-card">
+                <h5>Complexity</h5>
+                <p>Time: O(amount * number_of_coins)</p>
+                <p>Space: O(amount)</p>
+              </article>
+            </div>
+          )}
+        </section>
+
+        <div className="dp-view-toggle" role="tablist" aria-label="Coin change problem view">
+          <button
+            type="button"
+            className={`dp-view-btn ${coinProblemView === 'visual' ? 'active' : ''}`}
+            onClick={() => setCoinProblemView('visual')}
+            aria-selected={coinProblemView === 'visual'}
+          >
+            Visual Walkthrough
+          </button>
+          <button
+            type="button"
+            className={`dp-view-btn ${coinProblemView === 'cpp' ? 'active' : ''}`}
+            onClick={() => setCoinProblemView('cpp')}
+            aria-selected={coinProblemView === 'cpp'}
+          >
+            C++ Solution
+          </button>
+        </div>
+
+        {coinProblemView === 'visual' ? (
+          <>
+            <div className="dp-problem-controls">
+              <label htmlFor="coin-change-amount">Target amount: {coinAmount}</label>
+              <input
+                id="coin-change-amount"
+                type="range"
+                min="1"
+                max="40"
+                value={coinAmount}
+                onChange={(e) => setCoinAmount(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="dp-problem-controls">
+              <label htmlFor="coin-change-coins">Coins (comma-separated)</label>
+              <input
+                id="coin-change-coins"
+                type="text"
+                className="dp-text-input"
+                value={coinInput}
+                onChange={(e) => setCoinInput(e.target.value)}
+              />
+            </div>
+
+            <div className="dp-answer">
+              <span>Minimum coins required:</span>
+              <strong>{coinChange.minCoins}</strong>
+            </div>
+
+            <div className="dp-mode-toggle" role="tablist" aria-label="Coin change visualization mode">
+              <button
+                type="button"
+                className={`dp-mode-btn ${coinVisualMode === 'dp' ? 'active' : ''}`}
+                onClick={() => setCoinVisualMode('dp')}
+                aria-selected={coinVisualMode === 'dp'}
+              >
+                DP Mode
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${coinVisualMode === 'compare' ? 'active' : ''}`}
+                onClick={() => setCoinVisualMode('compare')}
+                aria-selected={coinVisualMode === 'compare'}
+              >
+                Recursion vs DP
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${coinVisualMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setCoinVisualMode('tree')}
+                aria-selected={coinVisualMode === 'tree'}
+              >
+                Recursion Tree
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${coinVisualMode === 'dryrun' ? 'active' : ''}`}
+                onClick={() => setCoinVisualMode('dryrun')}
+                aria-selected={coinVisualMode === 'dryrun'}
+              >
+                Dry Run
+              </button>
+            </div>
+
+            {coinVisualMode === 'compare' && (
+              <div className="dp-compare-panel">
+                <div className="dp-compare-cards">
+                  <div className="dp-compare-card recursion">
+                    <h5>Naive Recursion</h5>
+                    <p>Estimated calls for amount = {coinAmount}</p>
+                    <strong>{coinRecCalls >= 1_000_000_000 ? '1B+' : coinRecCalls}</strong>
+                  </div>
+                  <div className="dp-compare-card dynamic">
+                    <h5>Dynamic Programming</h5>
+                    <p>States + transitions used</p>
+                    <strong>{coinDpStates} states / {coinDpTransitions} transitions</strong>
+                  </div>
+                  <div className="dp-compare-card highlight">
+                    <h5>Efficiency Gain</h5>
+                    <p>Approx call-to-state ratio</p>
+                    <strong>{coinImprovement}x</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {coinVisualMode === 'tree' && (
+              <section className="dp-recursion-tree-section" aria-label="Coin change recursion tree">
+                <div className="dp-recursion-tree-header">
+                  <h4>Recursion Tree (Naive, Simplified)</h4>
+                  <span>Root: C({coinAmount}) | Depth: {coinTreeDepth} | Nodes: {coinTreeGraph.nodes.length}</span>
+                </div>
+                <div className="dp-recursion-context">
+                  <span className="ctx root">Root</span>
+                  <span className="ctx internal">Internal</span>
+                  <span className="ctx leaf">Leaf / Base</span>
+                  <span className="ctx left">Left branch (-{coins[0] ?? 1})</span>
+                  <span className="ctx right">Right branch (-{coins[1] ?? coins[0] ?? 1})</span>
+                  <span className="ctx value">Node value: dp amount value</span>
+                </div>
+                <div className="dp-recursion-tree-canvas">
+                  <svg className="dp-recursion-svg" viewBox={`0 0 ${coinTreeGraph.width} ${coinTreeGraph.height}`}>
+                    {coinTreeGraph.edges.map((edge) => (
+                      <line
+                        key={edge.id}
+                        className={`dp-recursion-edge ${edge.side}`}
+                        x1={edge.fromX}
+                        y1={edge.fromY}
+                        x2={edge.toX}
+                        y2={edge.toY}
+                      />
+                    ))}
+                    {coinTreeGraph.nodes.map((node) => (
+                      <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''} ${node.leaf ? 'leaf' : 'internal'}`} r="15" />
+                        <text className="dp-recursion-node-label" textAnchor="middle" dominantBaseline="middle">
+                          {node.label}
+                        </text>
+                        <text className="dp-recursion-node-value" textAnchor="middle" y="26">
+                          {node.valueText}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+              </section>
+            )}
+
+            <div className="dp-transitions">
+              <h4>State Transitions</h4>
+              <ul>
+                {coinChange.transitions.slice(0, Math.min(coinAmount + 1, coinChange.transitions.length)).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+
+            {coinVisualMode === 'dryrun' && (
+              <div className="dp-dry-run">
+                <div className="dp-dry-run-header">
+                  <h4>Detailed Dry Run</h4>
+                  <span>Coins: {coins.join(', ')}</span>
+                </div>
+                <div className="dp-dry-run-table-wrap">
+                  <table className="dp-dry-run-table">
+                    <thead>
+                      <tr>
+                        <th>Amount</th>
+                        <th>Choices (coin : candidate)</th>
+                        <th>dp[amount]</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {coinDryRunRows.map((row) => (
+                        <tr key={row.amount} className="dp-dry-run-row done">
+                          <td>{row.amount}</td>
+                          <td>{row.choices}</td>
+                          <td>{row.result === -1 ? 'INF' : row.result}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="dp-code-stack" aria-label="Coin change C plus plus solution">
+            <section className="dp-code-section">
+              <h4>C++ Tabulation</h4>
+              <div className="dp-code-block">
+                <pre>{coinChangeCppSource}</pre>
+              </div>
+            </section>
+          </div>
+        )}
+      </article>
+      )}
+
+      {selectedProblem === 'unique-paths' && (
+      <article className="dp-problem-card" id="dp-problem-unique-paths">
+        <div className="dp-problem-header">
+          <h3>Problem 4: Unique Paths</h3>
+          <span className="dp-problem-tag">2D DP</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => setSelectedProblem(null)}
+          >
+            Back to Problem List
+          </button>
+          <button
+            type="button"
+            className="dp-problem-nav-btn"
+            onClick={() => handleSelectProblem('coin-change')}
+          >
+            Go to Coin Change
+          </button>
+        </div>
+
+        <p className="dp-problem-description">
+          In an m x n grid, count how many unique paths exist from top-left to bottom-right,
+          moving only right or down.
+        </p>
+
+        <section className="dp-explanation" aria-label="Unique paths explanation">
+          <div className="dp-explanation-header">
+            <h4>Explanation</h4>
+            <button
+              type="button"
+              className="dp-explain-toggle"
+              onClick={() => setShowUniqueExplanation((prev) => !prev)}
+            >
+              {showUniqueExplanation ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showUniqueExplanation && (
+            <div className="dp-explanation-grid">
+              <article className="dp-explanation-card">
+                <h5>Recurrence</h5>
+                <p>dp[r][c] = dp[r - 1][c] + dp[r][c - 1]</p>
+                <p>First row and first column are all 1.</p>
+              </article>
+              <article className="dp-explanation-card">
+                <h5>Complexity</h5>
+                <p>Time: O(rows * cols)</p>
+                <p>Space: O(rows * cols)</p>
+              </article>
+            </div>
+          )}
+        </section>
+
+        <div className="dp-view-toggle" role="tablist" aria-label="Unique paths problem view">
+          <button
+            type="button"
+            className={`dp-view-btn ${uniqueProblemView === 'visual' ? 'active' : ''}`}
+            onClick={() => setUniqueProblemView('visual')}
+            aria-selected={uniqueProblemView === 'visual'}
+          >
+            Visual Walkthrough
+          </button>
+          <button
+            type="button"
+            className={`dp-view-btn ${uniqueProblemView === 'cpp' ? 'active' : ''}`}
+            onClick={() => setUniqueProblemView('cpp')}
+            aria-selected={uniqueProblemView === 'cpp'}
+          >
+            C++ Solution
+          </button>
+        </div>
+
+        {uniqueProblemView === 'visual' ? (
+          <>
+            <div className="dp-problem-controls">
+              <label htmlFor="unique-paths-rows">Rows: {gridRows}</label>
+              <input
+                id="unique-paths-rows"
+                type="range"
+                min="2"
+                max="8"
+                value={gridRows}
+                onChange={(e) => setGridRows(Number(e.target.value))}
+              />
+            </div>
+            <div className="dp-problem-controls">
+              <label htmlFor="unique-paths-cols">Columns: {gridCols}</label>
+              <input
+                id="unique-paths-cols"
+                type="range"
+                min="2"
+                max="8"
+                value={gridCols}
+                onChange={(e) => setGridCols(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="dp-answer">
+              <span>Total unique paths:</span>
+              <strong>{uniquePaths.paths}</strong>
+            </div>
+
+            <div className="dp-mode-toggle" role="tablist" aria-label="Unique paths visualization mode">
+              <button
+                type="button"
+                className={`dp-mode-btn ${uniqueVisualMode === 'dp' ? 'active' : ''}`}
+                onClick={() => setUniqueVisualMode('dp')}
+                aria-selected={uniqueVisualMode === 'dp'}
+              >
+                DP Mode
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${uniqueVisualMode === 'compare' ? 'active' : ''}`}
+                onClick={() => setUniqueVisualMode('compare')}
+                aria-selected={uniqueVisualMode === 'compare'}
+              >
+                Recursion vs DP
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${uniqueVisualMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setUniqueVisualMode('tree')}
+                aria-selected={uniqueVisualMode === 'tree'}
+              >
+                Recursion Tree
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${uniqueVisualMode === 'dryrun' ? 'active' : ''}`}
+                onClick={() => setUniqueVisualMode('dryrun')}
+                aria-selected={uniqueVisualMode === 'dryrun'}
+              >
+                Dry Run
+              </button>
+            </div>
+
+            {uniqueVisualMode === 'compare' && (
+              <div className="dp-compare-panel">
+                <div className="dp-compare-cards">
+                  <div className="dp-compare-card recursion">
+                    <h5>Naive Recursion</h5>
+                    <p>Estimated calls for {gridRows}x{gridCols}</p>
+                    <strong>{uniqueRecCalls >= 1_000_000_000 ? '1B+' : uniqueRecCalls}</strong>
+                  </div>
+                  <div className="dp-compare-card dynamic">
+                    <h5>Dynamic Programming</h5>
+                    <p>States + transitions used</p>
+                    <strong>{uniqueDpStates} states / {uniqueDpTransitions} transitions</strong>
+                  </div>
+                  <div className="dp-compare-card highlight">
+                    <h5>Efficiency Gain</h5>
+                    <p>Approx call-to-state ratio</p>
+                    <strong>{uniqueImprovement}x</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {uniqueVisualMode === 'tree' && (
+              <section className="dp-recursion-tree-section" aria-label="Unique paths recursion tree">
+                <div className="dp-recursion-tree-header">
+                  <h4>Recursion Tree (Naive)</h4>
+                  <span>Root: U({gridRows - 1},{gridCols - 1}) | Depth: {uniqueTreeDepth} | Nodes: {uniqueTreeGraph.nodes.length}</span>
+                </div>
+                <div className="dp-recursion-context">
+                  <span className="ctx root">Root</span>
+                  <span className="ctx internal">Internal</span>
+                  <span className="ctx leaf">Leaf / Base</span>
+                  <span className="ctx left">Left branch (r-1,c)</span>
+                  <span className="ctx right">Right branch (r,c-1)</span>
+                  <span className="ctx value">Node value: dp[r][c]</span>
+                </div>
+                <div className="dp-recursion-tree-canvas">
+                  <svg className="dp-recursion-svg" viewBox={`0 0 ${uniqueTreeGraph.width} ${uniqueTreeGraph.height}`}>
+                    {uniqueTreeGraph.edges.map((edge) => (
+                      <line
+                        key={edge.id}
+                        className={`dp-recursion-edge ${edge.side}`}
+                        x1={edge.fromX}
+                        y1={edge.fromY}
+                        x2={edge.toX}
+                        y2={edge.toY}
+                      />
+                    ))}
+                    {uniqueTreeGraph.nodes.map((node) => (
+                      <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''} ${node.leaf ? 'leaf' : 'internal'}`} r="15" />
+                        <text className="dp-recursion-node-label" textAnchor="middle" dominantBaseline="middle">
+                          {node.label}
+                        </text>
+                        <text className="dp-recursion-node-value" textAnchor="middle" y="26">
+                          {node.valueText}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+              </section>
+            )}
+
+            <div className="dp-matrix-wrap" aria-label="Unique paths DP matrix">
+              <table className="dp-matrix-table">
+                <tbody>
+                  {uniquePaths.dp.map((row, rIdx) => (
+                    <tr key={`r-${rIdx}`}>
+                      {row.map((value, cIdx) => (
+                        <td key={`c-${rIdx}-${cIdx}`}>{value}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {uniqueVisualMode === 'dryrun' && (
+              <div className="dp-dry-run">
+                <div className="dp-dry-run-header">
+                  <h4>Detailed Dry Run</h4>
+                  <span>Focus: internal cells (excluding first row/column)</span>
+                </div>
+                <div className="dp-dry-run-table-wrap">
+                  <table className="dp-dry-run-table">
+                    <thead>
+                      <tr>
+                        <th>Cell</th>
+                        <th>From Top</th>
+                        <th>From Left</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {uniqueDryRunRows.map((row) => (
+                        <tr key={`${row.row}-${row.col}`} className="dp-dry-run-row done">
+                          <td>dp[{row.row}][{row.col}]</td>
+                          <td>{row.fromTop}</td>
+                          <td>{row.fromLeft}</td>
+                          <td>{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="dp-transitions">
+              <h4>State Transitions</h4>
+              <ul>
+                {uniquePaths.transitions.slice(0, Math.min(uniquePaths.transitions.length, 12)).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : (
+          <div className="dp-code-stack" aria-label="Unique paths C plus plus solution">
+            <section className="dp-code-section">
+              <h4>C++ Tabulation</h4>
+              <div className="dp-code-block">
+                <pre>{uniquePathsCppSource}</pre>
+              </div>
+            </section>
+          </div>
+        )}
+      </article>
+      )}
+
+      {selectedProblem === 'lcs' && (
+      <article className="dp-problem-card" id="dp-problem-lcs">
+        <div className="dp-problem-header">
+          <h3>Problem 5: Longest Common Subsequence</h3>
+          <span className="dp-problem-tag">2D DP</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button type="button" className="dp-problem-nav-btn" onClick={() => setSelectedProblem(null)}>
+            Back to Problem List
+          </button>
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('edit-distance')}>
+            Go to Edit Distance
+          </button>
+        </div>
+
+        <p className="dp-problem-description">
+          Find the length of the longest subsequence common to two strings.
+        </p>
+
+        <section className="dp-explanation" aria-label="LCS explanation">
+          <div className="dp-explanation-header">
+            <h4>Explanation</h4>
+            <button type="button" className="dp-explain-toggle" onClick={() => setShowLcsExplanation((prev) => !prev)}>
+              {showLcsExplanation ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showLcsExplanation && (
+            <div className="dp-explanation-grid">
+              <article className="dp-explanation-card">
+                <h5>Recurrence</h5>
+                <p>If chars match: dp[i][j] = dp[i-1][j-1] + 1</p>
+                <p>Else: dp[i][j] = max(dp[i-1][j], dp[i][j-1])</p>
+              </article>
+              <article className="dp-explanation-card">
+                <h5>Complexity</h5>
+                <p>Time: O(n*m)</p>
+                <p>Space: O(n*m)</p>
+              </article>
+            </div>
+          )}
+        </section>
+
+        <div className="dp-view-toggle" role="tablist" aria-label="LCS problem view">
+          <button type="button" className={`dp-view-btn ${lcsProblemView === 'visual' ? 'active' : ''}`} onClick={() => setLcsProblemView('visual')} aria-selected={lcsProblemView === 'visual'}>
+            Visual Walkthrough
+          </button>
+          <button type="button" className={`dp-view-btn ${lcsProblemView === 'cpp' ? 'active' : ''}`} onClick={() => setLcsProblemView('cpp')} aria-selected={lcsProblemView === 'cpp'}>
+            C++ Solution
+          </button>
+        </div>
+
+        {lcsProblemView === 'visual' ? (
+          <>
+            <div className="dp-problem-controls">
+              <label htmlFor="lcs-first">First string</label>
+              <input id="lcs-first" type="text" className="dp-text-input" value={lcsFirst} onChange={(e) => setLcsFirst(e.target.value.slice(0, 12))} />
+            </div>
+            <div className="dp-problem-controls">
+              <label htmlFor="lcs-second">Second string</label>
+              <input id="lcs-second" type="text" className="dp-text-input" value={lcsSecond} onChange={(e) => setLcsSecond(e.target.value.slice(0, 12))} />
+            </div>
+
+            <div className="dp-answer">
+              <span>LCS length:</span>
+              <strong>{lcsResult.length}</strong>
+            </div>
+
+            <div className="dp-mode-toggle" role="tablist" aria-label="LCS visualization mode">
+              <button
+                type="button"
+                className={`dp-mode-btn ${lcsVisualMode === 'dp' ? 'active' : ''}`}
+                onClick={() => setLcsVisualMode('dp')}
+                aria-selected={lcsVisualMode === 'dp'}
+              >
+                DP Mode
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${lcsVisualMode === 'compare' ? 'active' : ''}`}
+                onClick={() => setLcsVisualMode('compare')}
+                aria-selected={lcsVisualMode === 'compare'}
+              >
+                Recursion vs DP
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${lcsVisualMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setLcsVisualMode('tree')}
+                aria-selected={lcsVisualMode === 'tree'}
+              >
+                Recursion Tree
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${lcsVisualMode === 'dryrun' ? 'active' : ''}`}
+                onClick={() => setLcsVisualMode('dryrun')}
+                aria-selected={lcsVisualMode === 'dryrun'}
+              >
+                Dry Run
+              </button>
+            </div>
+
+            {lcsVisualMode === 'compare' && (
+              <div className="dp-compare-panel">
+                <div className="dp-compare-cards">
+                  <div className="dp-compare-card recursion">
+                    <h5>Naive Recursion</h5>
+                    <p>Estimated calls for ({lcsFirst.length}, {lcsSecond.length})</p>
+                    <strong>{lcsRecCalls >= 1_000_000_000 ? '1B+' : lcsRecCalls}</strong>
+                  </div>
+                  <div className="dp-compare-card dynamic">
+                    <h5>Dynamic Programming</h5>
+                    <p>States + transitions used</p>
+                    <strong>{lcsDpStates} states / {lcsDpTransitions} transitions</strong>
+                  </div>
+                  <div className="dp-compare-card highlight">
+                    <h5>Efficiency Gain</h5>
+                    <p>Approx call-to-state ratio</p>
+                    <strong>{lcsImprovement}x</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {lcsVisualMode === 'tree' && (
+              <section className="dp-recursion-tree-section" aria-label="LCS recursion tree">
+                <div className="dp-recursion-tree-header">
+                  <h4>Recursion Tree (Naive, Simplified)</h4>
+                  <span>Root: L({lcsFirst.length},{lcsSecond.length}) | Depth: {lcsTreeDepth} | Nodes: {lcsTreeGraph.nodes.length}</span>
+                </div>
+                <div className="dp-recursion-context">
+                  <span className="ctx root">Root</span>
+                  <span className="ctx internal">Internal</span>
+                  <span className="ctx leaf">Leaf / Base</span>
+                  <span className="ctx left">Left branch (i-1,j)</span>
+                  <span className="ctx right">Right branch (i,j-1)</span>
+                  <span className="ctx value">Node value: dp[i][j]</span>
+                </div>
+                <div className="dp-recursion-tree-canvas">
+                  <svg className="dp-recursion-svg" viewBox={`0 0 ${lcsTreeGraph.width} ${lcsTreeGraph.height}`}>
+                    {lcsTreeGraph.edges.map((edge) => (
+                      <line
+                        key={edge.id}
+                        className={`dp-recursion-edge ${edge.side}`}
+                        x1={edge.fromX}
+                        y1={edge.fromY}
+                        x2={edge.toX}
+                        y2={edge.toY}
+                      />
+                    ))}
+                    {lcsTreeGraph.nodes.map((node) => (
+                      <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''} ${node.leaf ? 'leaf' : 'internal'}`} r="15" />
+                        <text className="dp-recursion-node-label" textAnchor="middle" dominantBaseline="middle">
+                          {node.label}
+                        </text>
+                        <text className="dp-recursion-node-value" textAnchor="middle" y="26">
+                          {node.valueText}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+              </section>
+            )}
+
+            <div className="dp-matrix-wrap" aria-label="LCS DP matrix">
+              <table className="dp-matrix-table">
+                <tbody>
+                  {lcsResult.dp.map((row, rIdx) => (
+                    <tr key={`lcs-r-${rIdx}`}>
+                      {row.map((value, cIdx) => (
+                        <td key={`lcs-c-${rIdx}-${cIdx}`}>{value}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {lcsVisualMode === 'dryrun' && (
+              <div className="dp-dry-run">
+                <div className="dp-dry-run-header">
+                  <h4>Detailed Dry Run</h4>
+                  <span>{lcsFirst} vs {lcsSecond}</span>
+                </div>
+                <div className="dp-dry-run-table-wrap">
+                  <table className="dp-dry-run-table">
+                    <thead>
+                      <tr>
+                        <th>Cell</th>
+                        <th>Chars</th>
+                        <th>Top</th>
+                        <th>Left</th>
+                        <th>Diag</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lcsDryRunRows.map((row) => (
+                        <tr key={`${row.row}-${row.col}`} className="dp-dry-run-row done">
+                          <td>dp[{row.row}][{row.col}]</td>
+                          <td>{row.charA}/{row.charB}</td>
+                          <td>{row.fromTop}</td>
+                          <td>{row.fromLeft}</td>
+                          <td>{row.fromDiag}</td>
+                          <td>{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="dp-transitions">
+              <h4>State Transitions</h4>
+              <ul>
+                {lcsResult.transitions.slice(0, 14).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : (
+          <div className="dp-code-stack" aria-label="LCS C plus plus solution">
+            <section className="dp-code-section">
+              <h4>C++ Tabulation</h4>
+              <div className="dp-code-block">
+                <pre>{lcsCppSource}</pre>
+              </div>
+            </section>
+          </div>
+        )}
+      </article>
+      )}
+
+      {selectedProblem === 'edit-distance' && (
+      <article className="dp-problem-card" id="dp-problem-edit-distance">
+        <div className="dp-problem-header">
+          <h3>Problem 6: Edit Distance</h3>
+          <span className="dp-problem-tag">2D DP</span>
+        </div>
+
+        <div className="dp-problem-nav-row">
+          <button type="button" className="dp-problem-nav-btn" onClick={() => setSelectedProblem(null)}>
+            Back to Problem List
+          </button>
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('lcs')}>
+            Go to LCS
+          </button>
+        </div>
+
+        <p className="dp-problem-description">
+          Compute minimum operations (insert, delete, replace) needed to convert one string to another.
+        </p>
+
+        <section className="dp-explanation" aria-label="Edit distance explanation">
+          <div className="dp-explanation-header">
+            <h4>Explanation</h4>
+            <button type="button" className="dp-explain-toggle" onClick={() => setShowEditExplanation((prev) => !prev)}>
+              {showEditExplanation ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showEditExplanation && (
+            <div className="dp-explanation-grid">
+              <article className="dp-explanation-card">
+                <h5>Recurrence</h5>
+                <p>If chars match: dp[i][j] = dp[i-1][j-1]</p>
+                <p>Else: 1 + min(delete, insert, replace)</p>
+              </article>
+              <article className="dp-explanation-card">
+                <h5>Complexity</h5>
+                <p>Time: O(n*m)</p>
+                <p>Space: O(n*m)</p>
+              </article>
+            </div>
+          )}
+        </section>
+
+        <div className="dp-view-toggle" role="tablist" aria-label="Edit distance problem view">
+          <button type="button" className={`dp-view-btn ${editProblemView === 'visual' ? 'active' : ''}`} onClick={() => setEditProblemView('visual')} aria-selected={editProblemView === 'visual'}>
+            Visual Walkthrough
+          </button>
+          <button type="button" className={`dp-view-btn ${editProblemView === 'cpp' ? 'active' : ''}`} onClick={() => setEditProblemView('cpp')} aria-selected={editProblemView === 'cpp'}>
+            C++ Solution
+          </button>
+        </div>
+
+        {editProblemView === 'visual' ? (
+          <>
+            <div className="dp-problem-controls">
+              <label htmlFor="edit-first">First string</label>
+              <input id="edit-first" type="text" className="dp-text-input" value={editFirst} onChange={(e) => setEditFirst(e.target.value.slice(0, 12))} />
+            </div>
+            <div className="dp-problem-controls">
+              <label htmlFor="edit-second">Second string</label>
+              <input id="edit-second" type="text" className="dp-text-input" value={editSecond} onChange={(e) => setEditSecond(e.target.value.slice(0, 12))} />
+            </div>
+
+            <div className="dp-answer">
+              <span>Edit distance:</span>
+              <strong>{editDistanceResult.distance}</strong>
+            </div>
+
+            <div className="dp-mode-toggle" role="tablist" aria-label="Edit distance visualization mode">
+              <button
+                type="button"
+                className={`dp-mode-btn ${editVisualMode === 'dp' ? 'active' : ''}`}
+                onClick={() => setEditVisualMode('dp')}
+                aria-selected={editVisualMode === 'dp'}
+              >
+                DP Mode
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${editVisualMode === 'compare' ? 'active' : ''}`}
+                onClick={() => setEditVisualMode('compare')}
+                aria-selected={editVisualMode === 'compare'}
+              >
+                Recursion vs DP
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${editVisualMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setEditVisualMode('tree')}
+                aria-selected={editVisualMode === 'tree'}
+              >
+                Recursion Tree
+              </button>
+              <button
+                type="button"
+                className={`dp-mode-btn ${editVisualMode === 'dryrun' ? 'active' : ''}`}
+                onClick={() => setEditVisualMode('dryrun')}
+                aria-selected={editVisualMode === 'dryrun'}
+              >
+                Dry Run
+              </button>
+            </div>
+
+            {editVisualMode === 'compare' && (
+              <div className="dp-compare-panel">
+                <div className="dp-compare-cards">
+                  <div className="dp-compare-card recursion">
+                    <h5>Naive Recursion</h5>
+                    <p>Estimated calls for ({editFirst.length}, {editSecond.length})</p>
+                    <strong>{editRecCalls >= 1_000_000_000 ? '1B+' : editRecCalls}</strong>
+                  </div>
+                  <div className="dp-compare-card dynamic">
+                    <h5>Dynamic Programming</h5>
+                    <p>States + transitions used</p>
+                    <strong>{editDpStates} states / {editDpTransitions} transitions</strong>
+                  </div>
+                  <div className="dp-compare-card highlight">
+                    <h5>Efficiency Gain</h5>
+                    <p>Approx call-to-state ratio</p>
+                    <strong>{editImprovement}x</strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {editVisualMode === 'tree' && (
+              <section className="dp-recursion-tree-section" aria-label="Edit distance recursion tree">
+                <div className="dp-recursion-tree-header">
+                  <h4>Recursion Tree (Naive, Simplified)</h4>
+                  <span>Root: E({editFirst.length},{editSecond.length}) | Depth: {editTreeDepth} | Nodes: {editTreeGraph.nodes.length}</span>
+                </div>
+                <div className="dp-recursion-context">
+                  <span className="ctx root">Root</span>
+                  <span className="ctx internal">Internal</span>
+                  <span className="ctx leaf">Leaf / Base</span>
+                  <span className="ctx left">Left branch (i-1,j)</span>
+                  <span className="ctx right">Right branch (i,j-1)</span>
+                  <span className="ctx value">Node value: dp[i][j]</span>
+                </div>
+                <div className="dp-recursion-tree-canvas">
+                  <svg className="dp-recursion-svg" viewBox={`0 0 ${editTreeGraph.width} ${editTreeGraph.height}`}>
+                    {editTreeGraph.edges.map((edge) => (
+                      <line
+                        key={edge.id}
+                        className={`dp-recursion-edge ${edge.side}`}
+                        x1={edge.fromX}
+                        y1={edge.fromY}
+                        x2={edge.toX}
+                        y2={edge.toY}
+                      />
+                    ))}
+                    {editTreeGraph.nodes.map((node) => (
+                      <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+                        <circle className={`dp-recursion-node ${node.root ? 'root' : ''} ${node.leaf ? 'leaf' : 'internal'}`} r="15" />
+                        <text className="dp-recursion-node-label" textAnchor="middle" dominantBaseline="middle">
+                          {node.label}
+                        </text>
+                        <text className="dp-recursion-node-value" textAnchor="middle" y="26">
+                          {node.valueText}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+              </section>
+            )}
+
+            <div className="dp-matrix-wrap" aria-label="Edit distance DP matrix">
+              <table className="dp-matrix-table">
+                <tbody>
+                  {editDistanceResult.dp.map((row, rIdx) => (
+                    <tr key={`edit-r-${rIdx}`}>
+                      {row.map((value, cIdx) => (
+                        <td key={`edit-c-${rIdx}-${cIdx}`}>{value}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {editVisualMode === 'dryrun' && (
+              <div className="dp-dry-run">
+                <div className="dp-dry-run-header">
+                  <h4>Detailed Dry Run</h4>
+                  <span>{editFirst} {'->'} {editSecond}</span>
+                </div>
+                <div className="dp-dry-run-table-wrap">
+                  <table className="dp-dry-run-table">
+                    <thead>
+                      <tr>
+                        <th>Cell</th>
+                        <th>Chars</th>
+                        <th>Insert</th>
+                        <th>Delete</th>
+                        <th>Replace</th>
+                        <th>Chosen</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {editDryRunRows.map((row) => (
+                        <tr key={`${row.row}-${row.col}`} className="dp-dry-run-row done">
+                          <td>dp[{row.row}][{row.col}]</td>
+                          <td>{row.charA}/{row.charB}</td>
+                          <td>{row.insertCost}</td>
+                          <td>{row.deleteCost}</td>
+                          <td>{row.replaceCost}</td>
+                          <td>{row.value}</td>
+                          <td>{row.action}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="dp-transitions">
+              <h4>State Transitions</h4>
+              <ul>
+                {editDistanceResult.transitions.slice(0, 14).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : (
+          <div className="dp-code-stack" aria-label="Edit distance C plus plus solution">
+            <section className="dp-code-section">
+              <h4>C++ Tabulation</h4>
+              <div className="dp-code-block">
+                <pre>{editDistanceCppSource}</pre>
+              </div>
+            </section>
+          </div>
+        )}
+      </article>
+      )}
+
+      {selectedProblem !== null && selectedProblem !== 'climbing' && selectedProblem !== 'house' && selectedProblem !== 'coin-change' && selectedProblem !== 'unique-paths' && selectedProblem !== 'lcs' && selectedProblem !== 'edit-distance' && (
       <article className="dp-problem-card" id="dp-problem-coming-soon">
         <div className="dp-problem-header">
           <h3>{selectedProblemInfo?.title ?? 'Problem'}</h3>
