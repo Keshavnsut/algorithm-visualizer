@@ -3,6 +3,7 @@ import './App.css'
 import SortingVisualizer from './components/SortingVisualizer/SortingVisualizer'
 import PathfindingVisualizer from './components/PathfindingVisualizer/PathfindingVisualizer'
 import DPSection from './components/DPSection/DPSection'
+import AIAssistant from './components/AIAssistant/AIAssistant'
 
 type VisualizerType = 'sorting' | 'pathfinding' | 'dp'
 
@@ -40,6 +41,8 @@ function App() {
         {activeVisualizer === 'pathfinding' && <PathfindingVisualizer />}
         {activeVisualizer === 'dp' && <DPSection />}
       </main>
+
+      <AIAssistant problemName={activeVisualizer} problemId={activeVisualizer} />
 
       <footer className="footer">
         <p>Built with React + TypeScript | <a href="https://github.com" target="_blank" rel="noopener noreferrer">View on GitHub</a></p>

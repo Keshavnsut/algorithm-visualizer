@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-3.5-turbo
+      - DATABASE_PATH=./data/ai.db
+      - FRONTEND_URL=http://localhost:5173
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/data:/app/data
+    command: npm run dev
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - '5173:5173'
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    volumes:
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+    command: npm run dev
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
