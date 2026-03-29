@@ -30,6 +30,10 @@ interface RunHistoryEntry {
   timestamp: string
 }
 
+interface SortingVisualizerProps {
+  onContextChange?: (payload: { problemName: string; problemId: string; code?: string; language?: string }) => void
+}
+
 const ALGORITHM_INFO: Record<SortingAlgorithm, { name: string; description: string; timeComplexity: string; spaceComplexity: string }> = {
   bubble: {
     name: 'Bubble Sort',
@@ -92,7 +96,7 @@ const SORTING_CPP_IMPLEMENTATIONS: Record<SortingAlgorithm, { title: string; sou
   shell: { title: 'Shell Sort', source: shellSortCppSource },
 }
 
-function SortingVisualizer() {
+function SortingVisualizer({ onContextChange }: SortingVisualizerProps) {
   const [array, setArray] = useState<ArrayBar[]>([])
   const [arraySize, setArraySize] = useState(50)
   const [speed, setSpeed] = useState(50)
@@ -101,12 +105,24 @@ function SortingVisualizer() {
   const [view, setView] = useState<SortingView>('visual')
   const [cppAlgorithm, setCppAlgorithm] = useState<SortingAlgorithm>('bubble')
   const [isSorting, setIsSorting] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [comparisons, setComparisons] = useState(0)
   const [swaps, setSwaps] = useState(0)
+  const [animatedComparisons, setAnimatedComparisons] = useState(0)
+  const [animatedSwaps, setAnimatedSwaps] = useState(0)
   const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>([])
   const sortingRef = useRef(false)
   const comparisonsRef = useRef(0)
   const swapsRef = useRef(0)
+
+  useEffect(() => {
+    onContextChange?.({
+      problemName: `${ALGORITHM_INFO[algorithm].name} (Sorting)`,
+      problemId: `sorting-${algorithm}`,
+      code: SORTING_CPP_IMPLEMENTATIONS[algorithm].source,
+      language: 'cpp',
+    })
+  }, [algorithm, onContextChange])
 
   const updateComparisons = (value: number) => {
     comparisonsRef.current = value
@@ -122,6 +138,48 @@ function SortingVisualizer() {
     updateComparisons(0)
     updateSwaps(0)
   }
+
+  useEffect(() => {
+    let frame = 0
+    const start = animatedComparisons
+    const target = comparisons
+    if (start === target) return
+    const started = performance.now()
+    const duration = 280
+
+    const animate = (ts: number) => {
+      const progress = Math.min(1, (ts - started) / duration)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setAnimatedComparisons(Math.round(start + (target - start) * eased))
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate)
+      }
+    }
+
+    frame = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(frame)
+  }, [comparisons])
+
+  useEffect(() => {
+    let frame = 0
+    const start = animatedSwaps
+    const target = swaps
+    if (start === target) return
+    const started = performance.now()
+    const duration = 280
+
+    const animate = (ts: number) => {
+      const progress = Math.min(1, (ts - started) / duration)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setAnimatedSwaps(Math.round(start + (target - start) * eased))
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate)
+      }
+    }
+
+    frame = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(frame)
+  }, [swaps])
 
   // Generate random array
   const generateArray = () => {
@@ -628,6 +686,7 @@ function SortingVisualizer() {
   // Start sorting
   const startSorting = async () => {
     setIsSorting(true)
+    setIsProcessing(true)
     sortingRef.current = true
     resetCounters()
     const startedAt = performance.now()
@@ -679,6 +738,7 @@ function SortingVisualizer() {
     ].slice(0, 8))
 
     setIsSorting(false)
+    setIsProcessing(false)
     sortingRef.current = false
   }
 
@@ -686,6 +746,7 @@ function SortingVisualizer() {
   const stopSorting = () => {
     sortingRef.current = false
     setIsSorting(false)
+    setIsProcessing(false)
   }
 
   return (
@@ -760,7 +821,7 @@ function SortingVisualizer() {
         </button>
 
         {!isSorting ? (
-          <button className="btn btn-primary" onClick={startSorting}>
+          <button className="btn btn-primary btn-cta" onClick={startSorting}>
             Start Sorting
           </button>
         ) : (
@@ -792,9 +853,20 @@ function SortingVisualizer() {
       {view === 'visual' ? (
         <>
           <div className="stats">
-            <span>Comparisons: <strong>{comparisons}</strong></span>
-            <span>Swaps: <strong>{swaps}</strong></span>
+            <span className="stat-chip comparisons">Comparisons <strong>{animatedComparisons}</strong></span>
+            <span className="stat-chip swaps">Swaps <strong>{animatedSwaps}</strong></span>
+            <span className={`stat-chip status ${isSorting ? 'running' : 'idle'}`}>
+              {isSorting ? 'Running' : 'Ready'}
+            </span>
+            {isProcessing && (
+              <span className="sorting-processing" role="status" aria-live="polite">
+                <span className="processing-dot" />
+                Sorting in progress...
+              </span>
+            )}
           </div>
+
+          <div className="section-divider" />
 
           <div className="history-card">
             <div className="history-header">
@@ -850,21 +922,32 @@ function SortingVisualizer() {
             )}
           </div>
 
+          <div className="section-divider" />
+
           <div className="array-container">
-            {array.map((bar, idx) => (
-              <div
-                key={idx}
-                className={`array-bar ${bar.state}`}
-                style={{
-                  height: `${bar.value}px`,
-                  width: `${Math.max(800 / arraySize - 2, 2)}px`,
-                }}
-              />
-            ))}
+            {array.map((bar, idx) => {
+              const isSmall = arraySize > 50
+              return (
+                <div
+                  key={idx}
+                  className={`array-bar ${bar.state}`}
+                  style={{
+                    height: `${bar.value}px`,
+                    width: `${Math.max(800 / arraySize - 2, 2)}px`,
+                  }}
+                  title={`Index ${idx}: ${bar.value}`}
+                >
+                  {!isSmall && <span className="bar-value">{bar.value}</span>}
+                </div>
+              )
+            })}
           </div>
 
           <div className="algorithm-info">
-            <h3>{ALGORITHM_INFO[algorithm].name}</h3>
+            <div className="algorithm-info-head">
+              <h3>{ALGORITHM_INFO[algorithm].name}</h3>
+              <span className="algo-badge">{algorithm.toUpperCase()}</span>
+            </div>
             <p>{ALGORITHM_INFO[algorithm].description}</p>
             <div className="complexity">
               <span>Time: <code>{ALGORITHM_INFO[algorithm].timeComplexity}</code></span>

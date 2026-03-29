@@ -1,6 +1,6 @@
 # Algorithm Visualizer Backend
 
-Express server with OpenAI integration for AI-powered algorithm learning features.
+Express server with configurable LLM provider integration for AI-powered algorithm learning features.
 
 ## Features
 
@@ -22,13 +22,25 @@ npm install
 ### 2. Configure Environment
 ```bash
 cp .env.example .env
-# Edit .env and add your OpenAI API key
+# Edit .env and choose provider + API key (OpenAI or Groq)
 ```
 
-### 3. Get OpenAI API Key
+### 3. Get Provider API Key
+Choose one provider:
+
+#### Option A: Groq (recommended free-tier start)
+1. Go to https://console.groq.com/keys
+2. Create an API key
+3. Set in `.env`:
+  - `AI_PROVIDER=groq`
+  - `GROQ_API_KEY=...`
+
+#### Option B: OpenAI
 1. Go to https://platform.openai.com/api-keys
 2. Create a new API key
-3. Add it to your `.env` file
+3. Set in `.env`:
+  - `AI_PROVIDER=openai`
+  - `OPENAI_API_KEY=...`
 
 ### 4. Initialize Database
 ```bash
@@ -101,8 +113,11 @@ Get optimization suggestions
 ## Environment Variables
 
 - `PORT` - Server port (default: 5000)
-- `OPENAI_API_KEY` - Your OpenAI API key (required)
-- `OPENAI_MODEL` - Model to use (default: gpt-3.5-turbo)
+- `AI_PROVIDER` - `openai` or `groq`
+- `OPENAI_API_KEY` - OpenAI key when using OpenAI
+- `OPENAI_MODEL` - OpenAI model (default: `gpt-4o-mini`)
+- `GROQ_API_KEY` - Groq key when using Groq
+- `GROQ_MODEL` - Groq model (default: `llama-3.1-8b-instant`)
 - `DATABASE_PATH` - SQLite database location
 - `FRONTEND_URL` - Frontend origin for CORS
 

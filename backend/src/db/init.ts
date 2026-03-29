@@ -1,4 +1,4 @@
-import { initializeDatabase } from './database.ts'
+import { initializeDatabase } from './database.js'
 
 console.log('Initializing database...')
 initializeDatabase()

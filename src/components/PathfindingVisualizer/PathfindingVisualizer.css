@@ -1,10 +1,12 @@
 .graph-container {
-  background: var(--background);
-  border-radius: 8px;
-  padding: 1rem;
+  background: linear-gradient(150deg, rgba(26, 31, 58, 0.9), rgba(10, 14, 39, 0.92));
+  border-radius: 12px;
+  padding: 1.5rem;
   user-select: none;
   display: flex;
   justify-content: center;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.1);
 }
 
 .pathfinding-view-toggle {
@@ -113,9 +115,12 @@
   width: 100%;
   max-width: 700px;
   height: 420px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.16), transparent 36%),
+    radial-gradient(circle at 80% 80%, rgba(244, 114, 182, 0.14), transparent 30%),
+    linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.92) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
 }
 
 /* Node styles */
@@ -362,4 +367,104 @@
 
 .instructions strong {
   color: var(--primary-color);
+}
+
+.pathfinding-stats-grid {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.path-stat-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(30, 41, 59, 0.75);
+  color: #cbd5e1;
+  padding: 0.28rem 0.62rem;
+  font-size: 0.76rem;
+}
+
+.path-stat-chip strong {
+  color: #f8fafc;
+}
+
+.path-stat-chip.success {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(6, 95, 70, 0.32);
+}
+
+.path-stat-chip.muted {
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggle-btn {
+  padding: 0.4rem 1rem;
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  background: rgba(26, 31, 58, 0.6);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.3);
+  border-color: rgba(124, 58, 237, 0.6);
+  color: var(--text-primary);
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  border-color: #7c3aed;
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+html[data-theme='light'] .graph-svg {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.16), transparent 36%),
+    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 245, 249, 0.95) 100%);
+  border-color: rgba(100, 116, 139, 0.4);
+}
+
+html[data-theme='light'] .node.default {
+  fill: #e2e8f0;
+  stroke: #4f46e5;
+}
+
+html[data-theme='light'] .node.visited {
+  fill: rgba(79, 70, 229, 0.35);
+  stroke: #4338ca;
+}
+
+html[data-theme='light'] .node.path {
+  fill: rgba(245, 158, 11, 0.75);
+  stroke: #b45309;
+}
+
+html[data-theme='light'] .node-label {
+  fill: #0f172a;
+  font-weight: 700;
+}
+
+html[data-theme='light'] .edge {
+  stroke: #64748b;
+}
+
+html[data-theme='light'] .edge-weight-bg {
+  fill: #ffffff;
+  stroke: #94a3b8;
+}
+
+html[data-theme='light'] .edge-weight {
+  fill: #1e293b;
 }

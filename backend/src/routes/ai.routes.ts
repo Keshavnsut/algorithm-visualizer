@@ -1,11 +1,12 @@
-import express, { Router, Request, Response } from 'express'
-import { v4 as uuidv4 } from 'uuid'
+import { Router, type Request, type Response, type NextFunction } from 'express'
 import {
   explainCode,
   generateHint,
   chatWithAI,
   validateAndExplainError,
   suggestOptimizations,
+  getAiProviderInfo,
+  type ChatMessage,
 } from '../services/openai.service.js'
 import {
   saveChatMessage,
@@ -20,9 +21,26 @@ import {
 const router = Router()
 
 // Middleware to handle errors
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: Function) => {
+type AsyncRouteHandler = (req: Request, res: Response, next: NextFunction) => Promise<unknown>
+
+const asyncHandler = (fn: AsyncRouteHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(fn(req, res, next)).catch(next)
 }
+
+const MAX_CODE_LENGTH = 12000
+const MAX_CHAT_MESSAGES = 20
+const MAX_CHAT_MESSAGE_LENGTH = 1500
+
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
+
+router.get('/status', (_req: Request, res: Response) => {
+  const info = getAiProviderInfo()
+  res.json({
+    ok: true,
+    provider: info.provider,
+    model: info.model,
+  })
+})
 
 // 1. Explain Code Endpoint
 router.post(
@@ -32,6 +50,10 @@ router.post(
 
     if (!code || !language) {
       return res.status(400).json({ error: 'Code and language are required' })
+    }
+
+    if (asString(code).length > MAX_CODE_LENGTH) {
+      return res.status(400).json({ error: `Code is too long. Limit is ${MAX_CODE_LENGTH} characters.` })
     }
 
     const explanation = await explainCode({ code, language, problemName })
@@ -75,7 +97,26 @@ router.post(
       return res.status(400).json({ error: 'Messages array is required' })
     }
 
-    const response = await chatWithAI({ messages, problemName })
+    if (messages.length > MAX_CHAT_MESSAGES) {
+      return res.status(400).json({ error: `Too many messages. Limit is ${MAX_CHAT_MESSAGES}.` })
+    }
+
+    const normalizedMessages: ChatMessage[] = messages
+      .map((message: unknown) => {
+        const role = typeof (message as { role?: unknown })?.role === 'string' ? (message as { role: string }).role : ''
+        const content = asString((message as { content?: unknown })?.content)
+        return {
+          role: (role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
+          content: content.slice(0, MAX_CHAT_MESSAGE_LENGTH),
+        }
+      })
+      .filter((message) => message.content.length > 0)
+
+    if (normalizedMessages.length === 0) {
+      return res.status(400).json({ error: 'At least one non-empty message is required' })
+    }
+
+    const response = await chatWithAI({ messages: normalizedMessages, problemName })
 
     // Save chat to history
     const lastUserMessage = messages[messages.length - 1].content
@@ -107,6 +148,10 @@ router.post(
       return res.status(400).json({ error: 'Code, language, and error message are required' })
     }
 
+    if (asString(code).length > MAX_CODE_LENGTH) {
+      return res.status(400).json({ error: `Code is too long. Limit is ${MAX_CODE_LENGTH} characters.` })
+    }
+
     const explanation = await validateAndExplainError(code, language, error)
 
     trackUsage('validate', null)
@@ -123,6 +168,10 @@ router.post(
 
     if (!code || !language) {
       return res.status(400).json({ error: 'Code and language are required' })
+    }
+
+    if (asString(code).length > MAX_CODE_LENGTH) {
+      return res.status(400).json({ error: `Code is too long. Limit is ${MAX_CODE_LENGTH} characters.` })
     }
 
     const suggestions = await suggestOptimizations({ code, language, problemName })
@@ -159,16 +208,25 @@ router.get(
 router.use((err: any, req: Request, res: Response, next: Function) => {
   console.error('API Error:', err)
 
-  if (err.error?.type === 'invalid_request_error') {
+  const openaiType = err?.error?.type || err?.type
+  const openaiCode = err?.error?.code || err?.code
+
+  if (openaiType === 'invalid_request_error') {
     return res.status(400).json({ error: 'Invalid request to AI service' })
   }
 
-  if (err.error?.type === 'authentication_error') {
+  if (openaiType === 'authentication_error') {
     return res.status(401).json({ error: 'Authentication error with AI service' })
   }
 
-  if (err.error?.type === 'rate_limit_error') {
+  if (openaiType === 'rate_limit_error') {
     return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' })
+  }
+
+  if (openaiCode === 'insufficient_quota' || openaiType === 'insufficient_quota') {
+    return res.status(402).json({
+      error: 'OpenAI quota exceeded. Add billing/credits in your OpenAI account or use a different API key.',
+    })
   }
 
   res.status(500).json({

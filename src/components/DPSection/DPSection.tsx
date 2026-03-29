@@ -1,13 +1,22 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './DPSection.css'
 import climbingStairsCppSource from './cpp/climbing_stairs.cpp?raw'
 import climbingStairsMemoCppSource from './cpp/climbing_stairs_memo.cpp?raw'
 import houseRobberCppSource from './cpp/house_robber.cpp?raw'
 import houseRobberMemoCppSource from './cpp/house_robber_memo.cpp?raw'
 import coinChangeCppSource from './cpp/coin_change.cpp?raw'
+import coinChangeMemoCppSource from './cpp/coin_change_memo.cpp?raw'
 import uniquePathsCppSource from './cpp/unique_paths.cpp?raw'
+import uniquePathsMemoCppSource from './cpp/unique_paths_memo.cpp?raw'
 import lcsCppSource from './cpp/lcs.cpp?raw'
+import lcsMemoCppSource from './cpp/lcs_memo.cpp?raw'
 import editDistanceCppSource from './cpp/edit_distance.cpp?raw'
+import editDistanceMemoCppSource from './cpp/edit_distance_memo.cpp?raw'
+import AdvancedDPProblems, { ADVANCED_DP_CPP_VARIANTS } from './AdvancedDPProblems'
+
+interface DPSectionProps {
+  onContextChange?: (payload: { problemName: string; problemId: string; code?: string; language?: string }) => void
+}
 
 interface ClimbingStairsResult {
   ways: number
@@ -694,97 +703,119 @@ const DP_PROBLEM_DIRECTORY: Array<{
     title: '0/1 Knapsack',
     tag: 'Knapsack',
     summary: 'Maximize value under capacity with pick-or-skip choices.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'partition-equal-subset-sum',
     title: 'Partition Equal Subset Sum',
     tag: 'Knapsack',
     summary: 'Check if array can split into two equal-sum subsets.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'target-sum',
     title: 'Target Sum',
     tag: 'Knapsack',
     summary: 'Count ways to assign +/- signs to hit a target.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'lis',
     title: 'Longest Increasing Subsequence',
     tag: 'LIS Pattern',
     summary: 'Find the longest strictly increasing subsequence.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'russian-doll-envelopes',
     title: 'Russian Doll Envelopes',
     tag: 'LIS Pattern',
     summary: 'Maximize nested envelopes after sorting constraints.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'number-of-lis',
     title: 'Number of LIS',
     tag: 'LIS Pattern',
     summary: 'Count how many longest increasing subsequences exist.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'matrix-chain-multiplication',
     title: 'Matrix Chain Multiplication',
     tag: 'Interval DP',
     summary: 'Choose split points to minimize multiplication cost.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'burst-balloons',
     title: 'Burst Balloons',
     tag: 'Interval DP',
     summary: 'Maximize coins by choosing optimal burst order.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'palindrome-partitioning',
     title: 'Palindrome Partitioning',
     tag: 'Interval DP',
     summary: 'Minimize cuts so each partition is a palindrome.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'house-robber-iii',
     title: 'House Robber III',
     tag: 'Tree DP',
     summary: 'Tree variant of robbery with parent-child constraints.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'diameter-variants',
     title: 'Diameter Variants',
     tag: 'Tree DP',
     summary: 'Compute longest path style metrics on trees.',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'tree-matching',
     title: 'Tree Matching',
     tag: 'Tree DP',
     summary: 'Optimize matching or independent choices on trees.',
-    implemented: false,
+    implemented: true,
   },
 ]
 
-function DPSection() {
+const DP_CPP_CODE_MAP: Partial<Record<ProblemId, string>> = {
+  climbing: `${climbingStairsCppSource}\n\n${climbingStairsMemoCppSource}`,
+  house: `${houseRobberCppSource}\n\n${houseRobberMemoCppSource}`,
+  'coin-change': `${coinChangeMemoCppSource}\n\n${coinChangeCppSource}`,
+  'unique-paths': `${uniquePathsMemoCppSource}\n\n${uniquePathsCppSource}`,
+  lcs: `${lcsMemoCppSource}\n\n${lcsCppSource}`,
+  'edit-distance': `${editDistanceMemoCppSource}\n\n${editDistanceCppSource}`,
+  'knapsack-01': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['knapsack-01'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['knapsack-01'].tabulation}`,
+  'partition-equal-subset-sum': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['partition-equal-subset-sum'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['partition-equal-subset-sum'].tabulation}`,
+  'target-sum': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['target-sum'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['target-sum'].tabulation}`,
+  lis: `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['lis'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['lis'].tabulation}`,
+  'russian-doll-envelopes': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['russian-doll-envelopes'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['russian-doll-envelopes'].tabulation}`,
+  'number-of-lis': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['number-of-lis'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['number-of-lis'].tabulation}`,
+  'matrix-chain-multiplication': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['matrix-chain-multiplication'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['matrix-chain-multiplication'].tabulation}`,
+  'burst-balloons': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['burst-balloons'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['burst-balloons'].tabulation}`,
+  'palindrome-partitioning': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['palindrome-partitioning'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['palindrome-partitioning'].tabulation}`,
+  'house-robber-iii': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['house-robber-iii'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['house-robber-iii'].tabulation}`,
+  'diameter-variants': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['diameter-variants'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['diameter-variants'].tabulation}`,
+  'tree-matching': `// C++ Memoization (Top-Down)\n${ADVANCED_DP_CPP_VARIANTS['tree-matching'].memoization}\n\n// C++ Tabulation (Bottom-Up)\n${ADVANCED_DP_CPP_VARIANTS['tree-matching'].tabulation}`,
+}
+
+function DPSection({ onContextChange }: DPSectionProps) {
   const [selectedProblem, setSelectedProblem] = useState<ProblemId | null>(null)
   const [quickStartProblem, setQuickStartProblem] = useState<ProblemId>('climbing')
   const [quickStartMode, setQuickStartMode] = useState<QuickStartMode>('visual')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeTagFilter, setActiveTagFilter] = useState('All')
   const [lastOpenedProblem, setLastOpenedProblem] = useState<ProblemId | null>(null)
   const [stairsCount, setStairsCount] = useState(6)
   const [problemView, setProblemView] = useState<ProblemView>('visual')
   const [visualMode, setVisualMode] = useState<VisualMode>('dp')
   const [currentStep, setCurrentStep] = useState(1)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [showClimbingExplanation, setShowClimbingExplanation] = useState(true)
 
   const [houseCount, setHouseCount] = useState(7)
@@ -792,7 +823,6 @@ function DPSection() {
   const [houseProblemView, setHouseProblemView] = useState<ProblemView>('visual')
   const [houseVisualMode, setHouseVisualMode] = useState<VisualMode>('dp')
   const [currentHouseIndex, setCurrentHouseIndex] = useState(0)
-  const [isHousePlaying, setIsHousePlaying] = useState(false)
   const [showHouseExplanation, setShowHouseExplanation] = useState(true)
 
   const [coinProblemView, setCoinProblemView] = useState<ProblemView>('visual')
@@ -818,6 +848,9 @@ function DPSection() {
   const [editFirst, setEditFirst] = useState('horse')
   const [editSecond, setEditSecond] = useState('ros')
   const [showEditExplanation, setShowEditExplanation] = useState(true)
+  const [transitionCursor, setTransitionCursor] = useState(0)
+  const [isTransitionPlaying, setIsTransitionPlaying] = useState(false)
+  const [transitionSpeedMs, setTransitionSpeedMs] = useState(900)
 
   const climbingStairs = useMemo(() => solveClimbingStairs(stairsCount), [stairsCount])
   const dryRunRows = useMemo(() => buildClimbingStairsDryRun(climbingStairs.dp), [climbingStairs.dp])
@@ -981,14 +1014,7 @@ function DPSection() {
 
   useEffect(() => {
     setCurrentStep(Math.min(1, stairsCount))
-    setIsPlaying(false)
   }, [stairsCount])
-
-  useEffect(() => {
-    if (problemView !== 'visual') {
-      setIsPlaying(false)
-    }
-  }, [problemView])
 
   useEffect(() => {
     setHouses(generateHouses(houseCount))
@@ -996,52 +1022,12 @@ function DPSection() {
 
   useEffect(() => {
     setCurrentHouseIndex(0)
-    setIsHousePlaying(false)
   }, [houses])
 
-  useEffect(() => {
-    if (houseProblemView !== 'visual') {
-      setIsHousePlaying(false)
-    }
-  }, [houseProblemView])
-
-  useEffect(() => {
-    if (!isPlaying || problemView !== 'visual') return
-
-    if (currentStep >= stairsCount) {
-      setIsPlaying(false)
-      return
-    }
-
-    const timer = setTimeout(() => {
-      setCurrentStep((prev) => Math.min(prev + 1, stairsCount))
-    }, 700)
-
-    return () => clearTimeout(timer)
-  }, [isPlaying, problemView, currentStep, stairsCount])
-
-  useEffect(() => {
-    if (!isHousePlaying || houseProblemView !== 'visual') return
-    if (currentHouseIndex >= houses.length - 1) {
-      setIsHousePlaying(false)
-      return
-    }
-
-    const timer = setTimeout(() => {
-      setCurrentHouseIndex((prev) => Math.min(prev + 1, houses.length - 1))
-    }, 800)
-
-    return () => clearTimeout(timer)
-  }, [isHousePlaying, houseProblemView, currentHouseIndex, houses.length])
-
-  const visibleTransitionCount = Math.min(currentStep + 1, climbingStairs.transitions.length)
-  const isComplete = currentStep === stairsCount
   const currentRecursionCalls = recursionCallCounts[currentStep] ?? 0
   const currentDpTransitions = Math.max(0, currentStep - 1)
   const currentDpStates = currentStep + 1
   const improvementFactor = currentDpStates > 0 ? (currentRecursionCalls / currentDpStates).toFixed(1) : '0.0'
-  const visibleHouseTransitions = Math.min(currentHouseIndex + 2, houseRobber.transitions.length)
-  const houseComplete = currentHouseIndex === houses.length - 1
   const currentHouseRecCalls = houseRecursionCallCounts[currentHouseIndex + 1] ?? 1
   const currentHouseDpStates = currentHouseIndex + 2
   const currentHouseDpTransitions = Math.max(0, currentHouseIndex)
@@ -1069,47 +1055,175 @@ function DPSection() {
   const editImprovement = editDpStates > 0 ? (editRecCalls / editDpStates).toFixed(1) : '0.0'
   const editTreeDepth = editTreeLevels.length
 
-  const STEP_WIDTH = 52
-  const STEP_GAP = 5
-  const TRACK_HEIGHT = 260
-  const BASE_STEP_HEIGHT = 32
-  const STEP_HEIGHT_GAIN = 9
-  const TRACK_PADDING_X = 10
+  const activeTransitions = useMemo(() => {
+    if (selectedProblem === 'climbing') return climbingStairs.transitions
+    if (selectedProblem === 'house') return houseRobber.transitions
+    if (selectedProblem === 'coin-change') return coinChange.transitions
+    if (selectedProblem === 'unique-paths') return uniquePaths.transitions
+    if (selectedProblem === 'lcs') return lcsResult.transitions
+    if (selectedProblem === 'edit-distance') return editDistanceResult.transitions
+    return []
+  }, [
+    selectedProblem,
+    climbingStairs.transitions,
+    houseRobber.transitions,
+    coinChange.transitions,
+    uniquePaths.transitions,
+    lcsResult.transitions,
+    editDistanceResult.transitions,
+  ])
 
-  const stepTopY = (step: number) => TRACK_HEIGHT - (BASE_STEP_HEIGHT + step * STEP_HEIGHT_GAIN) - 8
-  const stepCenterX = (step: number) => TRACK_PADDING_X + (step - 1) * (STEP_WIDTH + STEP_GAP) + STEP_WIDTH / 2
-  const trackCanvasWidth = TRACK_PADDING_X * 2 + stairsCount * STEP_WIDTH + Math.max(0, stairsCount - 1) * STEP_GAP
+  const isTransitionComplete = activeTransitions.length > 0 && transitionCursor >= activeTransitions.length - 1
 
-  const choicePathArrows = useMemo(() => {
-    if (currentStep < 2) return []
+  const renderTransitionPlayer = (transitions: string[]) => {
+    const visibleCount = transitions.length === 0 ? 0 : Math.min(transitionCursor + 1, transitions.length)
+    const progress = transitions.length === 0 ? 0 : Math.round((visibleCount / transitions.length) * 100)
 
-    const targetX = stepCenterX(currentStep)
-    const targetY = stepTopY(currentStep) + 8
-    const sources = [currentStep - 1, currentStep - 2]
+    return (
+      <>
+        <div className="dp-transition-player">
+          <div className="dp-transition-player-header">
+            <h4>Transition Playback</h4>
+            <div className="dp-transition-meta">
+              <span>{visibleCount}/{transitions.length || 0} steps</span>
+              <span>{transitionSpeedMs}ms</span>
+            </div>
+          </div>
 
-    return sources.map((sourceStep, index) => {
-      const fromGround = sourceStep <= 0
-      const sourceX = fromGround ? 6 : stepCenterX(sourceStep)
-      const sourceY = fromGround ? TRACK_HEIGHT - 22 : stepTopY(sourceStep) + 8
+          <div className="dp-transition-status">
+            <strong>
+              {transitions.length === 0
+                ? 'No transitions available'
+                : transitionCursor >= transitions.length - 1
+                  ? `Computed all ${transitions.length} transitions`
+                  : `Computing/Evaluating transition ${visibleCount} of ${transitions.length}`}
+            </strong>
+            <span>{progress}% complete</span>
+          </div>
 
-      const controlX = (sourceX + targetX) / 2
-      const controlY = Math.min(sourceY, targetY) - (fromGround ? 38 : 26)
+          <div className="dp-transition-progress">
+            <input
+              type="range"
+              min="0"
+              max={Math.max(0, transitions.length - 1)}
+              value={Math.min(transitionCursor, Math.max(0, transitions.length - 1))}
+              onChange={(e) => {
+                setIsTransitionPlaying(false)
+                setTransitionCursor(Number(e.target.value))
+              }}
+              disabled={transitions.length === 0}
+              aria-label="Transition progress"
+            />
+          </div>
 
-      return {
-        id: `${sourceStep}-${currentStep}`,
-        fromLabel: fromGround ? 'dp[0]' : `dp[${sourceStep}]`,
-        path: `M ${sourceX} ${sourceY} Q ${controlX} ${controlY} ${targetX} ${targetY}`,
-        labelX: controlX,
-        labelY: controlY - 9,
-        variant: index === 0 ? 'primary' : 'secondary',
-      }
-    })
-  }, [currentStep])
+          <div className="dp-transition-controls">
+            <button
+              type="button"
+              className="dp-problem-nav-btn"
+              onClick={() => {
+                setIsTransitionPlaying(false)
+                setTransitionCursor(0)
+              }}
+              disabled={transitions.length === 0 || transitionCursor === 0}
+            >
+              Start
+            </button>
+            <button
+              type="button"
+              className="dp-problem-nav-btn"
+              onClick={() => {
+                setIsTransitionPlaying(false)
+                setTransitionCursor((prev) => Math.max(0, prev - 1))
+              }}
+              disabled={transitions.length === 0 || transitionCursor === 0}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="dp-problem-nav-btn dp-play-btn"
+              onClick={() => {
+                if (transitionCursor >= transitions.length - 1 && transitions.length > 0) {
+                  setTransitionCursor(0)
+                  setIsTransitionPlaying(true)
+                  return
+                }
+                if (isTransitionPlaying) {
+                  setIsTransitionPlaying(false)
+                } else {
+                  setIsTransitionPlaying(true)
+                }
+              }}
+              disabled={transitions.length === 0}
+            >
+              {isTransitionPlaying ? 'Pause' : 'Play'}
+            </button>
+            <button
+              type="button"
+              className="dp-problem-nav-btn"
+              onClick={() => {
+                setTransitionCursor((prev) => Math.min(Math.max(0, transitions.length - 1), prev + 1))
+              }}
+              disabled={transitions.length === 0 || transitionCursor >= transitions.length - 1}
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              className="dp-problem-nav-btn"
+              onClick={() => {
+                setIsTransitionPlaying(false)
+                setTransitionCursor(Math.max(0, transitions.length - 1))
+              }}
+              disabled={transitions.length === 0 || transitionCursor >= transitions.length - 1}
+            >
+              End
+            </button>
 
-  const stairStageStyle = {
-    ['--current-step']: currentStep,
-    ['--total-steps']: stairsCount,
-  } as CSSProperties
+            <label className="dp-transition-speed-label" htmlFor="core-transition-speed">Speed</label>
+            <select
+              id="core-transition-speed"
+              className="dp-text-input dp-transition-speed-select"
+              value={transitionSpeedMs}
+              onChange={(e) => setTransitionSpeedMs(Number(e.target.value))}
+            >
+              <option value={1300}>Slow</option>
+              <option value={900}>Normal</option>
+              <option value={550}>Fast</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="dp-transitions">
+          <h4>State Transitions</h4>
+          <ul>
+            {transitions.slice(0, visibleCount).map((line, idx) => (
+              <li key={line} className={idx === visibleCount - 1 ? 'active' : ''}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      </>
+    )
+  }
+
+  useEffect(() => {
+    setTransitionCursor(0)
+    setIsTransitionPlaying(false)
+  }, [selectedProblem, activeTransitions.length])
+
+  useEffect(() => {
+    if (!isTransitionPlaying || activeTransitions.length === 0) return
+    if (isTransitionComplete) {
+      setIsTransitionPlaying(false)
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      setTransitionCursor((prev) => Math.min(prev + 1, activeTransitions.length - 1))
+    }, transitionSpeedMs)
+
+    return () => window.clearTimeout(timer)
+  }, [isTransitionPlaying, isTransitionComplete, activeTransitions.length, transitionSpeedMs])
 
   const handleSelectProblem = (problem: ProblemId) => {
     setSelectedProblem(problem)
@@ -1186,8 +1300,40 @@ function DPSection() {
   const lastOpenedTitle =
     DP_PROBLEM_DIRECTORY.find((problem) => problem.id === lastOpenedProblem)?.title ?? 'None yet'
   const totalProblems = DP_PROBLEM_DIRECTORY.length
-  const implementedProblems = DP_PROBLEM_DIRECTORY.filter((problem) => problem.implemented).length
-  const upcomingProblems = totalProblems - implementedProblems
+  const tagFilters = useMemo(
+    () => ['All', ...Array.from(new Set(DP_PROBLEM_DIRECTORY.map((problem) => problem.tag)))],
+    []
+  )
+  const filteredProblems = useMemo(
+    () =>
+      DP_PROBLEM_DIRECTORY.filter((problem) => {
+        const matchesSearch =
+          problem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          problem.summary.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesTag = activeTagFilter === 'All' || problem.tag === activeTagFilter
+        return matchesSearch && matchesTag
+      }),
+    [searchQuery, activeTagFilter]
+  )
+
+  const selectedProblemCode = useMemo(() => {
+    if (selectedProblem && DP_CPP_CODE_MAP[selectedProblem]) {
+      return DP_CPP_CODE_MAP[selectedProblem] as string
+    }
+
+    const fallbackTitle = selectedProblemInfo?.title ?? 'Dynamic Programming'
+    return `// ${fallbackTitle}\n// C++ reference is currently being expanded for this problem in the visualizer.`
+  }, [selectedProblem, selectedProblemInfo])
+
+  useEffect(() => {
+    const label = selectedProblemInfo?.title ?? 'Dynamic Programming'
+    onContextChange?.({
+      problemName: `${label} (Dynamic Programming)`,
+      problemId: selectedProblem ?? 'dp-overview',
+      code: selectedProblemCode,
+      language: 'cpp',
+    })
+  }, [selectedProblem, selectedProblemCode, selectedProblemInfo?.title, onContextChange])
 
   return (
     <section className="visualizer-container dp-section">
@@ -1196,8 +1342,7 @@ function DPSection() {
         <div className="dp-header-top">
           <h2>Dynamic Programming Hub</h2>
           <div className="dp-header-stats" aria-label="DP section stats">
-            <span><strong>{implementedProblems}</strong> implemented</span>
-            <span><strong>{upcomingProblems}</strong> coming soon</span>
+            <span><strong>All</strong> problems implemented</span>
             <span><strong>{totalProblems}</strong> total</span>
           </div>
         </div>
@@ -1205,15 +1350,9 @@ function DPSection() {
           Learn each problem through visual modes, recursion trees, dry runs, and C++ references.
           Pick a problem from the index and dive deep with interactive controls.
         </p>
+
       </div>
 
-      <div className="dp-roadmap">
-        <span className="dp-badge dp-badge-violet">Problem Index</span>
-        <span className="dp-badge dp-badge-violet">Interactive Visuals</span>
-        <span className="dp-badge dp-badge-violet">C++</span>
-        <span className="dp-badge dp-badge-violet">Dry Run</span>
-        <span className="dp-badge dp-badge-violet">Recursion Tree</span>
-      </div>
 
       <section className="dp-quickstart" aria-label="Quick start panel">
         <div className="dp-quickstart-head">
@@ -1261,28 +1400,68 @@ function DPSection() {
 
       {selectedProblem === null && (
       <div className="dp-problem-directory" id="dp-problem-directory">
+
         <div className="dp-problem-directory-head">
           <h3>Problem List</h3>
           <span>{selectedProblemTitle}</span>
         </div>
 
+        <div className="dp-search-filter-row">
+          <div className="dp-search-box">
+            <input
+              type="text"
+              className="dp-text-input"
+              placeholder="Search DP problems..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="dp-filter-group">
+            {tagFilters.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                className={`dp-filter-chip ${activeTagFilter === tag ? 'active' : ''}`}
+                onClick={() => setActiveTagFilter(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="dp-problem-directory-grid" role="list" aria-label="DP problems list">
-          {DP_PROBLEM_DIRECTORY.map((problem) => (
-            <button
+          {filteredProblems.map((problem) => (
+            <div
               key={problem.id}
-              type="button"
-              role="listitem"
+              role="button"
+              tabIndex={0}
               className={`dp-problem-tile ${selectedProblem === problem.id ? 'active' : ''}`}
               onClick={() => handleSelectProblem(problem.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleSelectProblem(problem.id)
+                }
+              }}
             >
               <div className="dp-problem-tile-head">
                 <strong>{problem.title}</strong>
-                <span>{problem.tag}</span>
+                <span className={`dp-tag-badge dp-tag-${problem.tag.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{problem.tag}</span>
               </div>
               <p>{problem.summary}</p>
-            </button>
+
+            </div>
           ))}
         </div>
+
+        {filteredProblems.length === 0 && (
+          <div className="dp-empty-state">
+            <div className="dp-empty-illustration" aria-hidden="true">( )</div>
+            <h4>No problem opened yet</h4>
+            <p>Try a different search keyword or tag filter to discover DP problems.</p>
+          </div>
+        )}
       </div>
       )}
 
@@ -1294,19 +1473,11 @@ function DPSection() {
         </div>
 
         <div className="dp-problem-nav-row">
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => setSelectedProblem(null)}
-          >
-            Back to Problem List
+          <button type="button" className="dp-problem-nav-btn" disabled>
+            Previous Problem
           </button>
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => handleSelectProblem('house')}
-          >
-            Go to House Robber
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('house')}>
+            Next Problem
           </button>
         </div>
 
@@ -1328,33 +1499,15 @@ function DPSection() {
           </div>
           {showClimbingExplanation && (
             <div className="dp-explanation-grid">
-            <article className="dp-explanation-card">
-              <h5>Intuition</h5>
-              <p>
-                To reach step i, your last move is either from step i-1 (one jump) or i-2 (two jumps).
-                So total ways to reach i is the sum of ways to reach these two previous steps.
-              </p>
-            </article>
-
-            <article className="dp-explanation-card">
-              <h5>Recurrence</h5>
-              <p>dp[i] = dp[i-1] + dp[i-2]</p>
-              <p>Base cases: dp[0] = 1, dp[1] = 1</p>
-            </article>
-
-            <article className="dp-explanation-card">
-              <h5>Why DP Helps</h5>
-              <p>
-                Naive recursion recomputes the same subproblems many times. DP stores results once and
-                reuses them, reducing repeated work drastically.
-              </p>
-            </article>
-
-            <article className="dp-explanation-card">
-              <h5>Complexity</h5>
-              <p>Tabulation: Time O(n), Space O(n)</p>
-              <p>Memoization: Time O(n), Space O(n) + recursion stack</p>
-            </article>
+              <article className="dp-explanation-card">
+                <h5>Recurrence</h5>
+                <p>dp[i] = dp[i-1] + dp[i-2]</p>
+                <p>Base cases: dp[0] = 1, dp[1] = 1</p>
+              </article>
+              <article className="dp-explanation-card">
+                <h5>Complexity</h5>
+                <p>Time: O(n), Space: O(n)</p>
+              </article>
             </div>
           )}
         </section>
@@ -1427,129 +1580,14 @@ function DPSection() {
               </button>
             </div>
 
-            <div className="dp-player-controls">
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 1))}
-                disabled={currentStep <= 1 || isPlaying}
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setIsPlaying((prev) => !prev)}
-                disabled={isComplete}
-              >
-                {isPlaying ? 'Pause' : 'Play'}
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setCurrentStep((prev) => Math.min(prev + 1, stairsCount))}
-                disabled={currentStep >= stairsCount || isPlaying}
-              >
-                Next
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn dp-player-reset"
-                onClick={() => {
-                  setCurrentStep(1)
-                  setIsPlaying(false)
-                }}
-              >
-                Reset
-              </button>
-            </div>
+
 
             <div className="dp-answer">
-              <span>
-                {isComplete
-                  ? `Ways to reach step ${stairsCount}:`
-                  : `Computing step ${currentStep} of ${stairsCount}`}
-              </span>
-              <strong>{isComplete ? climbingStairs.ways : '...'}</strong>
+              <span>Ways to reach step {stairsCount}:</span>
+              <strong>{climbingStairs.ways}</strong>
             </div>
 
-            <div
-              className="dp-stair-stage"
-              style={stairStageStyle}
-            >
-              <div className="dp-ground-cell">
-                <span>dp[0]</span>
-                <strong>{climbingStairs.dp[0]}</strong>
-              </div>
-
-              <div className="dp-stairs-track">
-                {Array.from({ length: stairsCount }, (_, index) => {
-                  const stepNumber = index + 1
-                  const revealed = stepNumber <= currentStep
-                  const current = stepNumber === currentStep
-
-                  return (
-                    <div
-                      key={stepNumber}
-                      className={`dp-stair-step ${revealed ? 'revealed' : ''} ${current ? 'current' : ''}`}
-                      style={{ ['--step-height']: `${32 + stepNumber * 9}px` } as CSSProperties}
-                    >
-                      <span>dp[{stepNumber}]</span>
-                      <strong>{revealed ? climbingStairs.dp[stepNumber] : '?'}</strong>
-                    </div>
-                  )
-                })}
-
-                {choicePathArrows.length > 0 && (
-                  <div
-                    className="dp-choice-overlay-svg-wrap"
-                    style={{ width: `${trackCanvasWidth}px`, height: `${TRACK_HEIGHT}px` }}
-                    aria-hidden
-                  >
-                    <svg
-                      className="dp-choice-overlay-svg"
-                      viewBox={`0 0 ${trackCanvasWidth} ${TRACK_HEIGHT}`}
-                    >
-                      <defs>
-                        <marker id="arrowhead-primary" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                          <path d="M0,0 L0,6 L6,3 z" fill="#fbbf24" />
-                        </marker>
-                        <marker id="arrowhead-secondary" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                          <path d="M0,0 L0,6 L6,3 z" fill="#818cf8" />
-                        </marker>
-                      </defs>
-
-                      {choicePathArrows.map((arrow) => (
-                        <g key={arrow.id} className={`dp-choice-path ${arrow.variant}`}>
-                          <path
-                            d={arrow.path}
-                            className="dp-choice-line-glow"
-                            markerEnd={`url(#arrowhead-${arrow.variant})`}
-                          />
-                          <path
-                            d={arrow.path}
-                            className="dp-choice-line"
-                            markerEnd={`url(#arrowhead-${arrow.variant})`}
-                          />
-                          <text
-                            x={arrow.labelX}
-                            y={arrow.labelY}
-                            className="dp-choice-label"
-                            textAnchor="middle"
-                          >
-                            {arrow.fromLabel}
-                          </text>
-                        </g>
-                      ))}
-                    </svg>
-                  </div>
-                )}
-
-                <div className={`dp-climber ${isPlaying ? 'moving' : ''}`}>
-                  P
-                </div>
-              </div>
-            </div>
+            {renderTransitionPlayer(climbingStairs.transitions)}
 
             {visualMode === 'compare' && (
               <div className="dp-compare-panel">
@@ -1680,15 +1718,6 @@ function DPSection() {
                 </div>
               </div>
             )}
-
-            <div className="dp-transitions">
-              <h4>State Transitions</h4>
-              <ul>
-                {climbingStairs.transitions.slice(0, visibleTransitionCount).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
           </>
         ) : (
           <div className="dp-code-stack" aria-label="C plus plus solutions">
@@ -1718,19 +1747,11 @@ function DPSection() {
         </div>
 
         <div className="dp-problem-nav-row">
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => setSelectedProblem(null)}
-          >
-            Back to Problem List
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('climbing')}>
+            Previous Problem
           </button>
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => handleSelectProblem('climbing')}
-          >
-            Go to Climbing Stairs
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('coin-change')}>
+            Next Problem
           </button>
         </div>
 
@@ -1813,50 +1834,7 @@ function DPSection() {
               />
             </div>
 
-            <div className="dp-player-controls">
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setCurrentHouseIndex((prev) => Math.max(prev - 1, 0))}
-                disabled={currentHouseIndex <= 0 || isHousePlaying}
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setIsHousePlaying((prev) => !prev)}
-                disabled={houseComplete}
-              >
-                {isHousePlaying ? 'Pause' : 'Play'}
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setCurrentHouseIndex((prev) => Math.min(prev + 1, houses.length - 1))}
-                disabled={currentHouseIndex >= houses.length - 1 || isHousePlaying}
-              >
-                Next
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn dp-player-reset"
-                onClick={() => {
-                  setCurrentHouseIndex(0)
-                  setIsHousePlaying(false)
-                }}
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                className="dp-player-btn"
-                onClick={() => setHouses(generateHouses(houseCount))}
-                disabled={isHousePlaying}
-              >
-                Randomize Houses
-              </button>
-            </div>
+
 
             <div className="dp-mode-toggle" role="tablist" aria-label="House robber visualization mode">
               <button
@@ -1894,31 +1872,11 @@ function DPSection() {
             </div>
 
             <div className="dp-answer">
-              <span>
-                {houseComplete
-                  ? 'Maximum loot possible:'
-                  : `Evaluating house ${currentHouseIndex + 1} of ${houses.length}`}
-              </span>
-              <strong>{houseComplete ? houseRobber.maxLoot : '...'}</strong>
+              <span>Maximum loot possible:</span>
+              <strong>{houseRobber.maxLoot}</strong>
             </div>
 
-            <div className="house-track" aria-label="House robber visualization">
-              {houses.map((value, idx) => {
-                const isRevealed = idx <= currentHouseIndex
-                const isCurrent = idx === currentHouseIndex
-                return (
-                  <div
-                    key={idx}
-                    className={`house-card ${isRevealed ? 'revealed' : ''} ${isCurrent ? 'current' : ''}`}
-                  >
-                    <div className="house-icon">H</div>
-                    <div className="house-label">House {idx + 1}</div>
-                    <div className="house-value">${value}</div>
-                    <div className="house-dp">best: {isRevealed ? houseRobber.dp[idx + 1] : '?'}</div>
-                  </div>
-                )
-              })}
-            </div>
+            {renderTransitionPlayer(houseRobber.transitions)}
 
             {houseVisualMode === 'compare' && (
               <div className="dp-compare-panel">
@@ -2037,14 +1995,6 @@ function DPSection() {
               </div>
             )}
 
-            <div className="dp-transitions">
-              <h4>State Transitions</h4>
-              <ul>
-                {houseRobber.transitions.slice(0, visibleHouseTransitions).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
           </>
         ) : (
           <div className="dp-code-stack" aria-label="House robber C plus plus solutions">
@@ -2074,19 +2024,11 @@ function DPSection() {
         </div>
 
         <div className="dp-problem-nav-row">
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => setSelectedProblem(null)}
-          >
-            Back to Problem List
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('house')}>
+            Previous Problem
           </button>
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => handleSelectProblem('unique-paths')}
-          >
-            Go to Unique Paths
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('unique-paths')}>
+            Next Problem
           </button>
         </div>
 
@@ -2270,14 +2212,7 @@ function DPSection() {
               </section>
             )}
 
-            <div className="dp-transitions">
-              <h4>State Transitions</h4>
-              <ul>
-                {coinChange.transitions.slice(0, Math.min(coinAmount + 1, coinChange.transitions.length)).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
+            {renderTransitionPlayer(coinChange.transitions)}
 
             {coinVisualMode === 'dryrun' && (
               <div className="dp-dry-run">
@@ -2311,9 +2246,15 @@ function DPSection() {
         ) : (
           <div className="dp-code-stack" aria-label="Coin change C plus plus solution">
             <section className="dp-code-section">
-              <h4>C++ Tabulation</h4>
+              <h4>C++ Tabulation (Bottom-Up)</h4>
               <div className="dp-code-block">
                 <pre>{coinChangeCppSource}</pre>
+              </div>
+            </section>
+            <section className="dp-code-section">
+              <h4>C++ Memoization (Top-Down)</h4>
+              <div className="dp-code-block">
+                <pre>{coinChangeMemoCppSource}</pre>
               </div>
             </section>
           </div>
@@ -2329,19 +2270,11 @@ function DPSection() {
         </div>
 
         <div className="dp-problem-nav-row">
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => setSelectedProblem(null)}
-          >
-            Back to Problem List
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('coin-change')}>
+            Previous Problem
           </button>
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => handleSelectProblem('coin-change')}
-          >
-            Go to Coin Change
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('lcs')}>
+            Next Problem
           </button>
         </div>
 
@@ -2570,21 +2503,20 @@ function DPSection() {
               </div>
             )}
 
-            <div className="dp-transitions">
-              <h4>State Transitions</h4>
-              <ul>
-                {uniquePaths.transitions.slice(0, Math.min(uniquePaths.transitions.length, 12)).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
+            {renderTransitionPlayer(uniquePaths.transitions)}
           </>
         ) : (
           <div className="dp-code-stack" aria-label="Unique paths C plus plus solution">
             <section className="dp-code-section">
-              <h4>C++ Tabulation</h4>
+              <h4>C++ Tabulation (Bottom-Up)</h4>
               <div className="dp-code-block">
                 <pre>{uniquePathsCppSource}</pre>
+              </div>
+            </section>
+            <section className="dp-code-section">
+              <h4>C++ Memoization (Top-Down)</h4>
+              <div className="dp-code-block">
+                <pre>{uniquePathsMemoCppSource}</pre>
               </div>
             </section>
           </div>
@@ -2600,11 +2532,11 @@ function DPSection() {
         </div>
 
         <div className="dp-problem-nav-row">
-          <button type="button" className="dp-problem-nav-btn" onClick={() => setSelectedProblem(null)}>
-            Back to Problem List
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('unique-paths')}>
+            Previous Problem
           </button>
           <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('edit-distance')}>
-            Go to Edit Distance
+            Next Problem
           </button>
         </div>
 
@@ -2808,21 +2740,20 @@ function DPSection() {
               </div>
             )}
 
-            <div className="dp-transitions">
-              <h4>State Transitions</h4>
-              <ul>
-                {lcsResult.transitions.slice(0, 14).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
+            {renderTransitionPlayer(lcsResult.transitions)}
           </>
         ) : (
           <div className="dp-code-stack" aria-label="LCS C plus plus solution">
             <section className="dp-code-section">
-              <h4>C++ Tabulation</h4>
+              <h4>C++ Tabulation (Bottom-Up)</h4>
               <div className="dp-code-block">
                 <pre>{lcsCppSource}</pre>
+              </div>
+            </section>
+            <section className="dp-code-section">
+              <h4>C++ Memoization (Top-Down)</h4>
+              <div className="dp-code-block">
+                <pre>{lcsMemoCppSource}</pre>
               </div>
             </section>
           </div>
@@ -2838,11 +2769,11 @@ function DPSection() {
         </div>
 
         <div className="dp-problem-nav-row">
-          <button type="button" className="dp-problem-nav-btn" onClick={() => setSelectedProblem(null)}>
-            Back to Problem List
-          </button>
           <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('lcs')}>
-            Go to LCS
+            Previous Problem
+          </button>
+          <button type="button" className="dp-problem-nav-btn" onClick={() => handleSelectProblem('knapsack-01')}>
+            Next Problem
           </button>
         </div>
 
@@ -3048,21 +2979,20 @@ function DPSection() {
               </div>
             )}
 
-            <div className="dp-transitions">
-              <h4>State Transitions</h4>
-              <ul>
-                {editDistanceResult.transitions.slice(0, 14).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </div>
+            {renderTransitionPlayer(editDistanceResult.transitions)}
           </>
         ) : (
           <div className="dp-code-stack" aria-label="Edit distance C plus plus solution">
             <section className="dp-code-section">
-              <h4>C++ Tabulation</h4>
+              <h4>C++ Tabulation (Bottom-Up)</h4>
               <div className="dp-code-block">
                 <pre>{editDistanceCppSource}</pre>
+              </div>
+            </section>
+            <section className="dp-code-section">
+              <h4>C++ Memoization (Top-Down)</h4>
+              <div className="dp-code-block">
+                <pre>{editDistanceMemoCppSource}</pre>
               </div>
             </section>
           </div>
@@ -3071,41 +3001,11 @@ function DPSection() {
       )}
 
       {selectedProblem !== null && selectedProblem !== 'climbing' && selectedProblem !== 'house' && selectedProblem !== 'coin-change' && selectedProblem !== 'unique-paths' && selectedProblem !== 'lcs' && selectedProblem !== 'edit-distance' && (
-      <article className="dp-problem-card" id="dp-problem-coming-soon">
-        <div className="dp-problem-header">
-          <h3>{selectedProblemInfo?.title ?? 'Problem'}</h3>
-          <span className="dp-problem-tag">Coming Soon</span>
-        </div>
-
-        <div className="dp-problem-nav-row">
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => setSelectedProblem(null)}
-          >
-            Back to Problem List
-          </button>
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => handleSelectProblem('climbing')}
-          >
-            Open Climbing Stairs
-          </button>
-          <button
-            type="button"
-            className="dp-problem-nav-btn"
-            onClick={() => handleSelectProblem('house')}
-          >
-            Open House Robber
-          </button>
-        </div>
-
-        <p className="dp-problem-description">
-          This problem is not implemented yet. It will be added soon with full explanation,
-          dry run, visualization modes, and C++ code.
-        </p>
-      </article>
+        <AdvancedDPProblems
+          problemId={selectedProblem}
+          title={selectedProblemInfo?.title ?? 'Dynamic Programming Problem'}
+          onNavigate={handleSelectProblem}
+        />
       )}
     </section>
   )

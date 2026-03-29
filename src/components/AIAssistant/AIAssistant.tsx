@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './AIAssistant.css'
 import CodeExplainer from './CodeExplainer'
-import HintSystem from './HintSystem'
 import AlgorithmChat from './AlgorithmChat'
-import CodeOptimizer from './CodeOptimizer'
+import { getJson } from './api'
 
-type AITabType = 'explain' | 'hint' | 'chat' | 'optimize'
+type AITabType = 'explain' | 'chat'
 
 interface AIAssistantProps {
   problemName?: string
@@ -15,8 +14,30 @@ interface AIAssistantProps {
 }
 
 function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = '', language = 'python' }: AIAssistantProps) {
-  const [activeTab, setActiveTab] = useState<AITabType>('explain')
+  const [activeTab, setActiveTab] = useState<AITabType>('chat')
   const [isOpen, setIsOpen] = useState(false)
+  const [providerInfo, setProviderInfo] = useState<string>('AI offline')
+
+  useEffect(() => {
+    let active = true
+
+    const loadStatus = async () => {
+      try {
+        const data = await getJson<{ provider: string; model: string }>('/api/ai/status')
+        if (!active) return
+        setProviderInfo(`${data.provider} • ${data.model}`)
+      } catch {
+        if (!active) return
+        setProviderInfo('AI offline')
+      }
+    }
+
+    void loadStatus()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <div className="ai-assistant">
@@ -31,6 +52,7 @@ function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = 
           <div className="ai-header">
             <h3>AI Assistant</h3>
             <p>{problemName}</p>
+            <p className="ai-provider">{providerInfo}</p>
           </div>
 
           <div className="ai-tabs">
@@ -41,22 +63,10 @@ function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = 
               Explain
             </button>
             <button
-              className={`ai-tab-btn ${activeTab === 'hint' ? 'active' : ''}`}
-              onClick={() => setActiveTab('hint')}
-            >
-              Hint
-            </button>
-            <button
               className={`ai-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
               onClick={() => setActiveTab('chat')}
             >
               Chat
-            </button>
-            <button
-              className={`ai-tab-btn ${activeTab === 'optimize' ? 'active' : ''}`}
-              onClick={() => setActiveTab('optimize')}
-            >
-              Optimize
             </button>
           </div>
 
@@ -64,14 +74,8 @@ function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = 
             {activeTab === 'explain' && (
               <CodeExplainer code={code} language={language} problemName={problemName} />
             )}
-            {activeTab === 'hint' && (
-              <HintSystem problemName={problemName} problemId={problemId} />
-            )}
             {activeTab === 'chat' && (
-              <AlgorithmChat problemName={problemName} problemId={problemId} />
-            )}
-            {activeTab === 'optimize' && (
-              <CodeOptimizer code={code} language={language} problemName={problemName} />
+              <AlgorithmChat problemName={problemName} problemId={problemId} code={code} language={language} />
             )}
           </div>
         </div>

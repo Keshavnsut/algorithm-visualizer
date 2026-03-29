@@ -27,7 +27,10 @@ app.use('/api/ai', aiRoutes)
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' })
+  res.status(404).json({
+    error: 'Route not found',
+    hint: `Frontend UI runs at ${process.env.FRONTEND_URL || 'http://localhost:5173'}`,
+  })
 })
 
 // Start server

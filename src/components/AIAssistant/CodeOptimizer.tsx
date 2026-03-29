@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { postJson } from './api'
 
 interface CodeOptimizerProps {
   code: string
@@ -21,21 +22,15 @@ function CodeOptimizer({ code, language, problemName }: CodeOptimizerProps) {
     setError('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await postJson<{ suggestions: string }>(
+        '/api/ai/optimize',
+        {
           code,
           language,
           problemName,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get suggestions')
-      }
+        },
+        { retries: 1 }
+      )
 
       setSuggestions(data.suggestions)
     } catch (err) {

@@ -1,8 +1,48 @@
 import OpenAI from 'openai'
 
+const provider = (process.env.AI_PROVIDER || 'openai').toLowerCase()
+const usingGroq = provider === 'groq'
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: usingGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY,
+  ...(usingGroq ? { baseURL: 'https://api.groq.com/openai/v1' } : {}),
 })
+
+const getModel = () => {
+  if (usingGroq) {
+    return process.env.GROQ_MODEL || 'llama-3.1-8b-instant'
+  }
+
+  return process.env.OPENAI_MODEL || 'gpt-4o-mini'
+}
+
+const ensureApiKey = () => {
+  const key = usingGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY
+  const placeholder = usingGroq ? 'replace_with_your_groq_key' : 'replace_with_your_openai_key'
+
+  if (!key || key === placeholder) {
+    if (usingGroq) {
+      throw new Error('GROQ_API_KEY is missing. Set a valid key in backend/.env and restart backend.')
+    }
+
+    throw new Error('OPENAI_API_KEY is missing. Set a valid key in backend/.env and restart backend.')
+  }
+}
+
+const getText = (content?: string | null) => content?.trim() || ''
+
+const trimTo = (input: string, maxLen: number): string => input.slice(0, maxLen)
+
+const sanitizeCodeBlock = (code: string): string => trimTo(code.replace(/\u0000/g, ''), 12000)
+
+const sanitizeText = (value: string, maxLen = 1000): string => trimTo(value.replace(/\u0000/g, '').trim(), maxLen)
+
+export function getAiProviderInfo() {
+  return {
+    provider,
+    model: getModel(),
+  }
+}
 
 export interface ExplanationRequest {
   code: string
@@ -34,21 +74,31 @@ export interface OptimizationRequest {
 
 // Explain submitted code
 export async function explainCode(req: ExplanationRequest): Promise<string> {
-  const prompt = `You are an expert algorithm tutor. Explain the following ${req.language} code for the "${req.problemName || 'algorithm'}" problem in a clear, educational way. Focus on:
+  ensureApiKey()
+
+  const safeLanguage = sanitizeText(req.language, 32)
+  const safeProblemName = req.problemName ? sanitizeText(req.problemName, 80) : 'algorithm'
+  const safeCode = sanitizeCodeBlock(req.code)
+
+  const prompt = `You are an expert algorithm tutor. Explain the following ${safeLanguage} code for the "${safeProblemName}" problem in a clear, educational way. Focus on:
 1. What the code does
 2. Time and space complexity
 3. Key algorithm concepts used
 4. Any potential improvements
 
 Code:
-\`\`\`${req.language}
-${req.code}
+\`\`\`${safeLanguage}
+${safeCode}
 \`\`\``
 
-  const message = await openai.messages.create({
-    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 1024,
     messages: [
+      {
+        role: 'system',
+        content: 'You are an expert algorithm tutor. Keep explanations practical and student-friendly.',
+      },
       {
         role: 'user',
         content: prompt,
@@ -56,23 +106,32 @@ ${req.code}
     ],
   })
 
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  return getText(response.choices[0]?.message?.content)
 }
 
 // Give graduated hints based on difficulty
 export async function generateHint(req: HintRequest): Promise<string> {
+  ensureApiKey()
+
+  const safeProblemName = sanitizeText(req.problemName, 80)
+  const safeDifficulty = sanitizeText(req.difficulty, 24)
+
   const hintPrompts = {
-    1: `Give a very general hint about the approach to solve "${req.problemName}" (difficulty: ${req.difficulty}). Do NOT reveal the solution. Hint should be 1-2 sentences.`,
-    2: `Give a medium hint about solving "${req.problemName}". Guide them toward the algorithm/approach but don't give code. 2-3 sentences.`,
-    3: `Give a strong hint for "${req.problemName}". You can mention the algorithm name and key steps, but avoid showing actual code. 3-4 sentences.`,
+    1: `Give a very general hint about the approach to solve "${safeProblemName}" (difficulty: ${safeDifficulty}). Do NOT reveal the solution. Hint should be 1-2 sentences.`,
+    2: `Give a medium hint about solving "${safeProblemName}". Guide them toward the algorithm/approach but don't give code. 2-3 sentences.`,
+    3: `Give a strong hint for "${safeProblemName}". You can mention the algorithm name and key steps, but avoid showing actual code. 3-4 sentences.`,
   }
 
   const prompt = hintPrompts[req.hintLevel as keyof typeof hintPrompts] || hintPrompts[1]
 
-  const message = await openai.messages.create({
-    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 512,
     messages: [
+      {
+        role: 'system',
+        content: 'You are an algorithm coach. Give hints only, never full solutions.',
+      },
       {
         role: 'user',
         content: prompt,
@@ -80,28 +139,37 @@ export async function generateHint(req: HintRequest): Promise<string> {
     ],
   })
 
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  return getText(response.choices[0]?.message?.content)
 }
 
 // Chat interface for Q&A
 export async function chatWithAI(req: ChatRequest): Promise<string> {
+  ensureApiKey()
+
+  const safeProblemName = req.problemName ? sanitizeText(req.problemName, 100) : undefined
+
   const systemPrompt = `You are an expert algorithm educator helping students understand dynamic programming, sorting, pathfinding, and other algorithms. 
-${req.problemName ? `The student is learning about: ${req.problemName}` : ''}
+${safeProblemName ? `The student is learning about: ${safeProblemName}` : ''}
 Be clear, concise, and educational. When asked about algorithms, explain concepts and provide complexity analysis.`
 
   const messages = req.messages.map((msg) => ({
     role: msg.role as 'user' | 'assistant',
-    content: msg.content,
+    content: sanitizeText(msg.content, 1500),
   }))
 
-  const response = await openai.messages.create({
-    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 1024,
-    system: systemPrompt,
-    messages,
+    messages: [
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
+      ...messages,
+    ],
   })
 
-  return response.content[0].type === 'text' ? response.content[0].text : ''
+  return getText(response.choices[0]?.message?.content)
 }
 
 // Validate syntax and provide error explanations
@@ -110,21 +178,31 @@ export async function validateAndExplainError(
   language: string,
   error: string
 ): Promise<string> {
-  const prompt = `A student got this error while writing ${language} code for an algorithm problem:
+  ensureApiKey()
 
-Error: ${error}
+  const safeLanguage = sanitizeText(language, 32)
+  const safeError = sanitizeText(error, 1200)
+  const safeCode = sanitizeCodeBlock(code)
+
+  const prompt = `A student got this error while writing ${safeLanguage} code for an algorithm problem:
+
+Error: ${safeError}
 
 Code:
-\`\`\`${language}
-${code}
+\`\`\`${safeLanguage}
+${safeCode}
 \`\`\`
 
 Explain what the error means in simple terms and suggest 2-3 ways to fix it. Be encouraging.`
 
-  const message = await openai.messages.create({
-    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 512,
     messages: [
+      {
+        role: 'system',
+        content: 'You are a kind debugging tutor. Explain errors simply and suggest safe fixes.',
+      },
       {
         role: 'user',
         content: prompt,
@@ -132,15 +210,21 @@ Explain what the error means in simple terms and suggest 2-3 ways to fix it. Be 
     ],
   })
 
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  return getText(response.choices[0]?.message?.content)
 }
 
 // Suggest code optimizations
 export async function suggestOptimizations(req: OptimizationRequest): Promise<string> {
-  const prompt = `Review this ${req.language} solution for "${req.problemName || 'an algorithm problem'}" and suggest optimizations:
+  ensureApiKey()
 
-\`\`\`${req.language}
-${req.code}
+  const safeLanguage = sanitizeText(req.language, 32)
+  const safeProblemName = req.problemName ? sanitizeText(req.problemName, 80) : 'an algorithm problem'
+  const safeCode = sanitizeCodeBlock(req.code)
+
+  const prompt = `Review this ${safeLanguage} solution for "${safeProblemName}" and suggest optimizations:
+
+\`\`\`${safeLanguage}
+${safeCode}
 \`\`\`
 
 Provide 2-3 specific optimization suggestions focusing on:
@@ -150,10 +234,14 @@ Provide 2-3 specific optimization suggestions focusing on:
 
 Format as a numbered list with explanations.`
 
-  const message = await openai.messages.create({
-    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+  const response = await openai.chat.completions.create({
+    model: getModel(),
     max_tokens: 1024,
     messages: [
+      {
+        role: 'system',
+        content: 'You are a code reviewer focused on algorithmic performance and readability.',
+      },
       {
         role: 'user',
         content: prompt,
@@ -161,5 +249,5 @@ Format as a numbered list with explanations.`
     ],
   })
 
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  return getText(response.choices[0]?.message?.content)
 }

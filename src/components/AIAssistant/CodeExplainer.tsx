@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { postJson } from './api'
+import './CodeExplainer.css'
 
 interface CodeExplainerProps {
   code: string
@@ -13,7 +15,7 @@ function CodeExplainer({ code, language, problemName }: CodeExplainerProps) {
 
   const handleExplain = async () => {
     if (!code.trim()) {
-      setError('Please paste your code first')
+      setError('No code available for this problem.')
       return
     }
 
@@ -21,41 +23,61 @@ function CodeExplainer({ code, language, problemName }: CodeExplainerProps) {
     setError('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await postJson<{ explanation: string }>(
+        '/api/ai/explain',
+        {
           code,
           language,
           problemName,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get explanation')
-      }
+        },
+        { retries: 1 }
+      )
 
       setExplanation(data.explanation)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'An error occurred analyzing the code')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="ai-explainer">
-      <button onClick={handleExplain} disabled={loading} className="ai-action-btn">
-        {loading ? 'Analyzing...' : 'Explain My Code'}
-      </button>
+    <div className="ai-explainer-container">
+      {!explanation ? (
+        <div className="code-explainer-intro">
+          <div className="code-info">
+            <h3>C++ Algorithm Explanation</h3>
+            <p>Problem: <strong>{problemName}</strong></p>
+            {code.trim() ? (
+              <>
+                <p>Language: <strong>{language.toUpperCase()}</strong></p>
+                <p>Code Preview:</p>
+                <div className="code-preview">
+                  <pre><code>{code.slice(0, 400)}{code.length > 400 ? '...' : ''}</code></pre>
+                </div>
+                <button onClick={handleExplain} disabled={loading} className="ai-action-btn">
+                  {loading ? 'Analyzing Code...' : 'Generate Explanation'}
+                </button>
+              </>
+            ) : (
+              <p className="code-unavailable">No code available for this problem yet.</p>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {error && <div className="ai-error">{error}</div>}
 
       {explanation && (
         <div className="ai-result">
+          <div className="result-header">
+            <h3>Code Explanation: {problemName}</h3>
+            <button onClick={() => setExplanation('')} className="btn-close">✕</button>
+          </div>
           <div className="ai-result-text">{explanation}</div>
+          <button onClick={handleExplain} disabled={loading} className="ai-action-btn">
+            {loading ? 'Regenerating...' : 'Regenerate Explanation'}
+          </button>
         </div>
       )}
     </div>

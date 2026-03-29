@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { postJson } from './api'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -8,14 +9,17 @@ interface Message {
 interface AlgorithmChatProps {
   problemName: string
   problemId: string
+  code?: string
+  language?: string
 }
 
-function AlgorithmChat({ problemName, problemId }: AlgorithmChatProps) {
+function AlgorithmChat({ problemName, problemId, code = '', language = 'python' }: AlgorithmChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const storageKey = `ai-chat-${problemId}`
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -25,30 +29,56 @@ function AlgorithmChat({ problemName, problemId }: AlgorithmChatProps) {
     scrollToBottom()
   }, [messages])
 
-  const sendMessage = async () => {
-    if (!input.trim()) return
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as Message[]
+      if (Array.isArray(parsed)) {
+        setMessages(parsed.slice(-20))
+      }
+    } catch {
+      setMessages([])
+    }
+  }, [storageKey])
 
-    const userMessage = input
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(messages.slice(-20)))
+  }, [messages, storageKey])
+
+  const starterPrompts = [
+    `Give me the intuition for ${problemName} in simple terms.`,
+    `What is the best time and space complexity for ${problemName}?`,
+    `What are the most common mistakes in ${problemName}?`,
+    `Give me an interview-style explanation for ${problemName}.`,
+    ...(code.trim()
+      ? [
+          `Review this ${language} code for ${problemName} and point out bugs or edge cases:\n\n${code.slice(0, 1200)}`,
+          `How can I optimize this ${language} solution for ${problemName}?\n\n${code.slice(0, 1200)}`,
+        ]
+      : []),
+  ]
+
+  const sendMessage = async (override?: string) => {
+    const text = (override ?? input).trim()
+    if (!text) return
+
+    const userMessage = text
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
+    const nextMessages = [...messages, { role: 'user' as const, content: userMessage }]
+    setMessages(nextMessages)
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, { role: 'user', content: userMessage }],
+      const data = await postJson<{ response: string }>(
+        '/api/ai/chat',
+        {
+          messages: nextMessages,
           problemName,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get response')
-      }
+        },
+        { retries: 1, timeoutMs: 30000 }
+      )
 
       setMessages((prev) => [...prev, { role: 'assistant', content: data.response }])
     } catch (err) {
@@ -56,6 +86,12 @@ function AlgorithmChat({ problemName, problemId }: AlgorithmChatProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const resetChat = () => {
+    setMessages([])
+    setError('')
+    localStorage.removeItem(storageKey)
   }
 
   return (
@@ -84,17 +120,32 @@ function AlgorithmChat({ problemName, problemId }: AlgorithmChatProps) {
 
       {error && <div className="ai-error">{error}</div>}
 
+      <div className="chat-starters">
+        {starterPrompts.map((prompt) => (
+          <button key={prompt} type="button" className="chat-starter-btn" onClick={() => void sendMessage(prompt)} disabled={loading}>
+            {prompt.length > 60 ? `${prompt.slice(0, 60)}...` : prompt}
+          </button>
+        ))}
+      </div>
+
       <div className="chat-input">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              void sendMessage()
+            }
+          }}
           placeholder="Ask a question..."
           disabled={loading}
         />
-        <button onClick={sendMessage} disabled={loading || !input.trim()}>
+        <button onClick={() => void sendMessage()} disabled={loading || !input.trim()}>
           Send
+        </button>
+        <button type="button" onClick={resetChat} disabled={loading || messages.length === 0}>
+          Clear
         </button>
       </div>
     </div>

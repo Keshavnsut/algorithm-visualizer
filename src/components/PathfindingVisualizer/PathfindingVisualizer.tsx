@@ -4,8 +4,11 @@ import bfsCppSource from './cpp/bfs.cpp?raw'
 import dfsCppSource from './cpp/dfs.cpp?raw'
 import dijkstraCppSource from './cpp/dijkstra.cpp?raw'
 import astarCppSource from './cpp/astar.cpp?raw'
+import bellmanFordCppSource from './cpp/bellman_ford.cpp?raw'
+import bidirectionalCppSource from './cpp/bidirectional_bfs.cpp?raw'
+import greedyBestFirstCppSource from './cpp/greedy_best_first.cpp?raw'
 
-type Algorithm = 'bfs' | 'dfs' | 'dijkstra' | 'astar'
+type Algorithm = 'bfs' | 'dfs' | 'dijkstra' | 'astar' | 'bellman-ford' | 'bidirectional' | 'greedy-best-first'
 type NodeState = 'default' | 'start' | 'end' | 'visited' | 'path' | 'current'
 type PathfindingView = 'visual' | 'cpp'
 
@@ -23,6 +26,17 @@ interface Edge {
   from: number
   to: number
   weight: number
+}
+
+interface PathfindingVisualizerProps {
+  onContextChange?: (payload: { problemName: string; problemId: string; code?: string; language?: string }) => void
+}
+
+interface RunStats {
+  found: boolean
+  visited: number
+  pathLength: number
+  totalCost: number
 }
 
 const ALGORITHM_INFO: Record<Algorithm, { name: string; description: string; weighted: boolean }> = {
@@ -45,6 +59,21 @@ const ALGORITHM_INFO: Record<Algorithm, { name: string; description: string; wei
     name: 'A* Search',
     description: 'Uses heuristics (Euclidean distance) to guide the search towards the goal. Combines path cost and estimated distance for optimal pathfinding.',
     weighted: true,
+  },
+  'bellman-ford': {
+    name: 'Bellman-Ford Algorithm',
+    description: 'Finds the shortest path in graphs with negative edges. Uses edge relaxation and can detect negative-weight cycles.',
+    weighted: true,
+  },
+  'bidirectional': {
+    name: 'Bidirectional Search',
+    description: 'Searches from both start and goal simultaneously, meeting in the middle. Faster than unidirectional search as it explores less nodes.',
+    weighted: false,
+  },
+  'greedy-best-first': {
+    name: 'Greedy Best-First Search',
+    description: 'Uses heuristics to expand the most promising nodes. Faster than A* but may not guarantee shortest path.',
+    weighted: false,
   },
 }
 
@@ -130,9 +159,12 @@ const PATHFINDING_CPP_IMPLEMENTATIONS: Record<Algorithm, { title: string; source
   dfs: { title: 'Depth-First Search (DFS)', source: dfsCppSource },
   dijkstra: { title: "Dijkstra's Algorithm", source: dijkstraCppSource },
   astar: { title: 'A* Search', source: astarCppSource },
+  'bellman-ford': { title: 'Bellman-Ford Algorithm', source: bellmanFordCppSource },
+  'bidirectional': { title: 'Bidirectional BFS', source: bidirectionalCppSource },
+  'greedy-best-first': { title: 'Greedy Best-First Search', source: greedyBestFirstCppSource },
 }
 
-function PathfindingVisualizer() {
+function PathfindingVisualizer({ onContextChange }: PathfindingVisualizerProps) {
   const [nodes, setNodes] = useState<GraphNode[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
   const [algorithm, setAlgorithm] = useState<Algorithm>('bfs')
@@ -146,8 +178,19 @@ function PathfindingVisualizer() {
   const [mode, setMode] = useState<'select' | 'addNode' | 'addEdge' | 'delete'>('select')
   const [edgeStart, setEdgeStart] = useState<number | null>(null)
   const [draggingNode, setDraggingNode] = useState<number | null>(null)
+  const [randomNodeCount, setRandomNodeCount] = useState(9)
+  const [runStats, setRunStats] = useState<RunStats>({ found: false, visited: 0, pathLength: 0, totalCost: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
   const runningRef = useRef(false)
+
+  useEffect(() => {
+    onContextChange?.({
+      problemName: `${ALGORITHM_INFO[algorithm].name} (Pathfinding)`,
+      problemId: `pathfinding-${algorithm}`,
+      code: PATHFINDING_CPP_IMPLEMENTATIONS[algorithm].source,
+      language: 'cpp',
+    })
+  }, [algorithm, onContextChange])
 
   // Initialize with simple graph
   useEffect(() => {
@@ -170,6 +213,7 @@ function PathfindingVisualizer() {
   }
 
   const resetStates = () => {
+    setRunStats({ found: false, visited: 0, pathLength: 0, totalCost: 0 })
     setNodes(prev => prev.map(n => ({
       ...n,
       state: n.id === startNode ? 'start' : n.id === endNode ? 'end' : 'default',
@@ -197,17 +241,37 @@ function PathfindingVisualizer() {
     return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) / 50
   }
 
-  const visualizePath = async (endId: number, nodeMap: Map<number, GraphNode>) => {
+  const getEdgeWeight = (from: number, to: number): number => {
+    const edge = edges.find((e) => (e.from === from && e.to === to) || (e.from === to && e.to === from))
+    return edge?.weight ?? 1
+  }
+
+  const getPathFromMap = (endId: number, nodeMap: Map<number, GraphNode>): number[] => {
     const path: number[] = []
     let current: number | null = endId
-    
+
     while (current !== null) {
       path.unshift(current)
       current = nodeMap.get(current)?.parent ?? null
     }
 
+    return path
+  }
+
+  const calculatePathCost = (path: number[]): number => {
+    if (path.length < 2) return 0
+    let total = 0
+    for (let i = 0; i < path.length - 1; i++) {
+      total += getEdgeWeight(path[i], path[i + 1])
+    }
+    return total
+  }
+
+  const visualizePath = async (endId: number, nodeMap: Map<number, GraphNode>): Promise<number[]> => {
+    const path = getPathFromMap(endId, nodeMap)
+
     for (const nodeId of path) {
-      if (!runningRef.current) return
+      if (!runningRef.current) return []
       if (nodeId !== startNode && nodeId !== endNode) {
         setNodes(prev => prev.map(n => 
           n.id === nodeId ? { ...n, state: 'path' } : n
@@ -215,6 +279,51 @@ function PathfindingVisualizer() {
         await delay(101 - speed)
       }
     }
+
+    return path
+  }
+
+  const generateRandomGraph = () => {
+    const count = Math.max(6, Math.min(16, randomNodeCount))
+    const generatedNodes = Array.from({ length: count }, (_, id) => ({
+      id,
+      x: Math.floor(70 + Math.random() * 520),
+      y: Math.floor(70 + Math.random() * 250),
+      state: id === 0 ? 'start' as NodeState : id === count - 1 ? 'end' as NodeState : 'default' as NodeState,
+      distance: Infinity,
+      heuristic: 0,
+      parent: null,
+    }))
+
+    const edgeSet = new Set<string>()
+    const generatedEdges: Edge[] = []
+
+    for (let i = 0; i < count - 1; i++) {
+      const j = i + 1
+      const key = `${i}-${j}`
+      edgeSet.add(key)
+      generatedEdges.push({ from: i, to: j, weight: Math.floor(1 + Math.random() * 9) })
+    }
+
+    for (let i = 0; i < count; i++) {
+      for (let j = i + 2; j < count; j++) {
+        if (Math.random() < 0.25) {
+          const key = `${i}-${j}`
+          if (!edgeSet.has(key)) {
+            edgeSet.add(key)
+            generatedEdges.push({ from: i, to: j, weight: Math.floor(1 + Math.random() * 9) })
+          }
+        }
+      }
+    }
+
+    setNodes(generatedNodes)
+    setEdges(generatedEdges)
+    setStartNode(0)
+    setEndNode(count - 1)
+    setSelectedNode(null)
+    setEdgeStart(null)
+    setRunStats({ found: false, visited: 0, pathLength: 0, totalCost: 0 })
   }
 
   // BFS Algorithm
@@ -229,7 +338,8 @@ function PathfindingVisualizer() {
       const currentId = queue.shift()!
 
       if (currentId === endNode) {
-        await visualizePath(currentId, nodeMap)
+        const path = await visualizePath(currentId, nodeMap)
+        setRunStats({ found: true, visited: visited.size, pathLength: path.length, totalCost: calculatePathCost(path) })
         return true
       }
 
@@ -250,6 +360,7 @@ function PathfindingVisualizer() {
       }
     }
 
+    setRunStats({ found: false, visited: visited.size, pathLength: 0, totalCost: 0 })
     return false
   }
 
@@ -268,7 +379,8 @@ function PathfindingVisualizer() {
       visited.add(currentId)
 
       if (currentId === endNode) {
-        await visualizePath(currentId, nodeMap)
+        const path = await visualizePath(currentId, nodeMap)
+        setRunStats({ found: true, visited: visited.size, pathLength: path.length, totalCost: calculatePathCost(path) })
         return true
       }
 
@@ -288,6 +400,7 @@ function PathfindingVisualizer() {
       }
     }
 
+    setRunStats({ found: false, visited: visited.size, pathLength: 0, totalCost: 0 })
     return false
   }
 
@@ -319,7 +432,8 @@ function PathfindingVisualizer() {
       visited.add(currentId)
 
       if (currentId === endNode) {
-        await visualizePath(currentId, nodeMap)
+        const path = await visualizePath(currentId, nodeMap)
+        setRunStats({ found: true, visited: visited.size, pathLength: path.length, totalCost: calculatePathCost(path) })
         return true
       }
 
@@ -344,6 +458,7 @@ function PathfindingVisualizer() {
       }
     }
 
+    setRunStats({ found: false, visited: visited.size, pathLength: 0, totalCost: 0 })
     return false
   }
 
@@ -385,7 +500,8 @@ function PathfindingVisualizer() {
       visited.add(currentId)
 
       if (currentId === endNode) {
-        await visualizePath(currentId, nodeMap)
+        const path = await visualizePath(currentId, nodeMap)
+        setRunStats({ found: true, visited: visited.size, pathLength: path.length, totalCost: calculatePathCost(path) })
         return true
       }
 
@@ -411,6 +527,183 @@ function PathfindingVisualizer() {
       }
     }
 
+    setRunStats({ found: false, visited: visited.size, pathLength: 0, totalCost: 0 })
+    return false
+  }
+
+  // Bellman-Ford Algorithm
+  const bellmanFord = async () => {
+    if (endNode === null) return false
+    const nodeMap = new Map<number, GraphNode>()
+    nodes.forEach(n => nodeMap.set(n.id, { ...n, parent: null }))
+    
+    const dist = new Map<number, number>()
+    nodes.forEach(n => dist.set(n.id, Infinity))
+    dist.set(startNode, 0)
+
+    const visited = new Set<number>()
+
+    // Relax edges V-1 times
+    for (let i = 0; i < nodes.length - 1; i++) {
+      for (const edge of edges) {
+        if (!runningRef.current) return false
+        
+        const u = edge.from
+        const v = edge.to
+        const d_u = dist.get(u) ?? Infinity
+        const d_v = dist.get(v) ?? Infinity
+
+        if (d_u !== Infinity && d_u + edge.weight < d_v) {
+          dist.set(v, d_u + edge.weight)
+          nodeMap.get(v)!.parent = u
+        }
+
+        if (d_v !== Infinity && d_v + edge.weight < d_u) {
+          dist.set(u, d_v + edge.weight)
+          nodeMap.get(u)!.parent = v
+        }
+      }
+    }
+
+    // Mark visited nodes
+    dist.forEach((d, nodeId) => {
+      if (d !== Infinity) {
+        visited.add(nodeId)
+      }
+    })
+
+    const endDist = dist.get(endNode) ?? Infinity
+    if (endDist !== Infinity) {
+      const path = await visualizePath(endNode, nodeMap)
+      setRunStats({ found: true, visited: visited.size, pathLength: path.length, totalCost: endDist })
+      return true
+    }
+
+    setRunStats({ found: false, visited: visited.size, pathLength: 0, totalCost: 0 })
+    return false
+  }
+
+  // Bidirectional BFS
+  const bidirectionalBFS = async () => {
+    if (endNode === null) return false
+    
+    const nodeMap_start = new Map<number, GraphNode>()
+    const nodeMap_goal = new Map<number, GraphNode>()
+    nodes.forEach(n => {
+      nodeMap_start.set(n.id, { ...n, parent: null })
+      nodeMap_goal.set(n.id, { ...n, parent: null })
+    })
+    
+    const visited_start = new Set<number>([startNode])
+    const visited_goal = new Set<number>([endNode])
+    const queue_start: number[] = [startNode]
+    const queue_goal: number[] = [endNode]
+
+    while ((queue_start.length > 0 || queue_goal.length > 0) && runningRef.current) {
+      // Expand from start
+      if (queue_start.length > 0) {
+        const curr = queue_start.shift()!
+        for (const neighbor of getNeighbors(curr)) {
+          if (visited_goal.has(neighbor.id)) {
+            const path = await visualizePath(neighbor.id, nodeMap_start)
+            setRunStats({ found: true, visited: visited_start.size + visited_goal.size, pathLength: path.length, totalCost: calculatePathCost(path) })
+            return true
+          }
+          if (!visited_start.has(neighbor.id)) {
+            visited_start.add(neighbor.id)
+            nodeMap_start.get(neighbor.id)!.parent = curr
+            queue_start.push(neighbor.id)
+            if (neighbor.id !== endNode) {
+              setNodes(prev => prev.map(n => n.id === neighbor.id ? { ...n, state: 'visited' } : n))
+            }
+          }
+        }
+        await delay(101 - speed)
+      }
+
+      // Expand from goal
+      if (queue_goal.length > 0) {
+        const curr = queue_goal.shift()!
+        for (const neighbor of getNeighbors(curr)) {
+          if (visited_start.has(neighbor.id)) {
+            setRunStats({ found: true, visited: visited_start.size + visited_goal.size, pathLength: 0, totalCost: 0 })
+            return true
+          }
+          if (!visited_goal.has(neighbor.id)) {
+            visited_goal.add(neighbor.id)
+            nodeMap_goal.get(neighbor.id)!.parent = curr
+            queue_goal.push(neighbor.id)
+            if (neighbor.id !== startNode) {
+              setNodes(prev => prev.map(n => n.id === neighbor.id ? { ...n, state: 'visited' } : n))
+            }
+          }
+        }
+        await delay(101 - speed)
+      }
+    }
+
+    setRunStats({ found: false, visited: visited_start.size + visited_goal.size, pathLength: 0, totalCost: 0 })
+    return false
+  }
+
+  // Greedy Best-First Search
+  const greedyBestFirst = async () => {
+    const nodeMap = new Map<number, GraphNode>()
+    const endNodeData = nodes.find(n => n.id === endNode)!
+    
+    nodes.forEach(n => {
+      nodeMap.set(n.id, { 
+        ...n, 
+        distance: 0, 
+        heuristic: euclideanDistance(n, endNodeData),
+        parent: null 
+      })
+    })
+
+    const openSet = new Set<number>([startNode])
+    const visited = new Set<number>()
+
+    while (openSet.size > 0 && runningRef.current) {
+      // Find node with minimum h (heuristic only)
+      let minH = Infinity
+      let currentId: number | null = null
+      
+      for (const id of openSet) {
+        const node = nodeMap.get(id)!
+        if (node.heuristic < minH) {
+          minH = node.heuristic
+          currentId = id
+        }
+      }
+
+      if (currentId === null) break
+      
+      openSet.delete(currentId)
+      visited.add(currentId)
+
+      if (currentId === endNode) {
+        const path = await visualizePath(currentId, nodeMap)
+        setRunStats({ found: true, visited: visited.size, pathLength: path.length, totalCost: calculatePathCost(path) })
+        return true
+      }
+
+      if (currentId !== startNode && currentId !== endNode) {
+        setNodes(prev => prev.map(n => 
+          n.id === currentId ? { ...n, state: 'visited' } : n
+        ))
+        await delay(101 - speed)
+      }
+
+      for (const neighbor of getNeighbors(currentId)) {
+        if (!visited.has(neighbor.id)) {
+          const neighborNode = nodeMap.get(neighbor.id)!
+          neighborNode.parent = currentId
+          openSet.add(neighbor.id)
+        }
+      }
+    }
+
+    setRunStats({ found: false, visited: visited.size, pathLength: 0, totalCost: 0 })
     return false
   }
 
@@ -438,6 +731,15 @@ function PathfindingVisualizer() {
         break
       case 'astar':
         found = await astar()
+        break
+      case 'bellman-ford':
+        found = await bellmanFord()
+        break
+      case 'bidirectional':
+        found = await bidirectionalBFS()
+        break
+      case 'greedy-best-first':
+        found = await greedyBestFirst()
         break
     }
 
@@ -572,6 +874,9 @@ function PathfindingVisualizer() {
             <option value="dfs">DFS</option>
             <option value="dijkstra">Dijkstra's</option>
             <option value="astar">A* Search</option>
+            <option value="bellman-ford">Bellman-Ford</option>
+            <option value="bidirectional">Bidirectional BFS</option>
+            <option value="greedy-best-first">Greedy Best-First</option>
           </select>
         </div>
 
@@ -612,6 +917,22 @@ function PathfindingVisualizer() {
             <option value="circular">Circular</option>
           </select>
         </div>
+
+        <div className="control-group">
+          <label>Random Nodes: {randomNodeCount}</label>
+          <input
+            type="range"
+            min="6"
+            max="16"
+            value={randomNodeCount}
+            onChange={(e) => setRandomNodeCount(Number(e.target.value))}
+            disabled={isRunning}
+          />
+        </div>
+
+        <button className="btn btn-secondary" onClick={generateRandomGraph} disabled={isRunning}>
+          Random Graph
+        </button>
 
         <button
           className="btn btn-secondary"
@@ -791,6 +1112,14 @@ function PathfindingVisualizer() {
               <span>Weighted: <code>{ALGORITHM_INFO[algorithm].weighted ? 'Yes' : 'No'}</code></span>
               <span>Shows edge weights: <code>{ALGORITHM_INFO[algorithm].weighted ? 'Yes' : 'No'}</code></span>
             </div>
+            <div className="pathfinding-stats-grid" aria-label="Pathfinding run stats">
+              <span className="path-stat-chip">Visited: <strong>{runStats.visited}</strong></span>
+              <span className="path-stat-chip">Path length: <strong>{runStats.pathLength}</strong></span>
+              <span className="path-stat-chip">Total cost: <strong>{runStats.totalCost}</strong></span>
+              <span className={`path-stat-chip ${runStats.found ? 'success' : 'muted'}`}>
+                Status: <strong>{runStats.found ? 'Path Found' : 'Not solved yet'}</strong>
+              </span>
+            </div>
           </div>
 
           <div className="instructions">
@@ -820,6 +1149,9 @@ function PathfindingVisualizer() {
               <option value="dfs">DFS</option>
               <option value="dijkstra">Dijkstra's</option>
               <option value="astar">A* Search</option>
+              <option value="bellman-ford">Bellman-Ford</option>
+              <option value="bidirectional">Bidirectional BFS</option>
+              <option value="greedy-best-first">Greedy Best-First</option>
             </select>
           </div>
 

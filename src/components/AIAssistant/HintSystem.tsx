@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { getJson, postJson } from './api'
 
 interface HintSystemProps {
   problemName: string
@@ -11,30 +12,53 @@ function HintSystem({ problemName, problemId }: HintSystemProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
 
+  useEffect(() => {
+    let active = true
+
+    const loadHintHistory = async () => {
+      try {
+        const data = await getJson<{ history: Array<{ hint_level: number; hint: string }> }>(`/api/ai/hint-history/${problemId}`)
+        if (!active) return
+
+        const next = ['', '', '']
+        data.history.forEach((entry) => {
+          const idx = Math.min(3, Math.max(1, entry.hint_level)) - 1
+          next[idx] = entry.hint
+        })
+
+        setHints(next)
+      } catch {
+        // History is optional; keep UX responsive if unavailable.
+      }
+    }
+
+    void loadHintHistory()
+
+    return () => {
+      active = false
+    }
+  }, [problemId])
+
   const getHint = async (level: number) => {
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/hint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await postJson<{ hint: string }>(
+        '/api/ai/hint',
+        {
           problemName,
           difficulty: 'medium',
           hintLevel: level,
-        }),
+        },
+        { retries: 1 }
+      )
+
+      setHints((prev) => {
+        const next = [...prev]
+        next[level - 1] = data.hint
+        return next
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get hint')
-      }
-
-      const newHints = [...hints]
-      newHints[level - 1] = data.hint
-      setHints(newHints)
       setHintLevel(level)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
