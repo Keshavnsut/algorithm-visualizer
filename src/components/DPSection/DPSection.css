@@ -687,7 +687,7 @@
 
 .dp-explanation-card h5 {
   margin: 0 0 0.3rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.8rem;
 }
 
@@ -1703,6 +1703,14 @@ html[data-theme='light'] .dp-mode-btn.active {
   background: rgba(99, 102, 241, 0.14);
   border-color: rgba(79, 70, 229, 0.48);
   color: #312e81;
+}
+
+html[data-theme='light'] .dp-explanation-card h5 {
+  color: #0f172a;
+}
+
+html[data-theme='light'] .dp-explanation-card p {
+  color: #334155;
 }
 
 html[data-theme='light'] .dp-play-btn {
