@@ -1,4 +1,4 @@
-# Deploy For Resume Link (Render)
+# Deploy to Render (Single Service)
 
 This project is now configured for a single-service deployment (frontend + backend on one URL).
 
@@ -35,9 +35,9 @@ AI status endpoint:
 
 - `/api/ai/status`
 
-## 5. Copy Your Resume Link
+## 5. Access the deployed application
 
-Use your Render service URL as the project link in your resume, for example:
+Use your Render service URL as the primary project endpoint, for example:
 
 - `https://algorithm-visualizer.onrender.com`
 

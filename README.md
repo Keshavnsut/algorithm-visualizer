@@ -6,7 +6,7 @@
   <img src=".github/assets/readme-hero.svg" alt="Algorithm Visualizer hero banner" width="100%" />
 </p>
 
-Interactive algorithm learning platform with real-time visual simulations, AI-assisted explanations, and resume-ready full-stack deployment.
+Interactive algorithm learning platform with real-time visual simulations, AI-assisted explanations, and production-grade full-stack deployment.
 
 [Live Demo](https://algorithm-visualizer-7yk7.onrender.com) | [Quick Start](#quick-start-local) | [Architecture](#architecture) | [Deployment](#deployment-render-single-url)
 
@@ -30,7 +30,7 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
   </tr>
 </table>
 
-## Recruiter quick scan (30 seconds)
+## Executive summary
 
 | Signal | Evidence |
 |---|---|
@@ -38,7 +38,7 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 | Engineering scope | Full-stack TypeScript architecture (React + Express) |
 | AI integration | Built-in Explain + Chat workflow with provider abstraction |
 | Deployment maturity | Dockerized, single-domain Render deployment with health checks |
-| Portfolio value | Combines algorithms, frontend UX, backend APIs, and production deployment |
+| Scope coverage | Combines algorithms, frontend UX, backend APIs, and production deployment |
 
 ## Navigation
 
@@ -47,9 +47,9 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 - [Architecture](#architecture)
 - [Quick start (local)](#quick-start-local)
 - [Deployment (Render single URL)](#deployment-render-single-url)
-- [Resume-ready highlights](#resume-ready-highlights)
+- [Project highlights](#project-highlights)
 
-## Why this project stands out
+## Project overview
 
 ### Learning experience
 
@@ -270,7 +270,7 @@ This repository includes a production-ready single-service deployment:
 
 - Dockerfile: `Dockerfile`
 - Blueprint: `render.yaml`
-- Step-by-step guide: `DEPLOY_RESUME_RENDER.md`
+- Step-by-step deployment guide: `DEPLOY_RENDER.md`
 
 Production routes:
 
@@ -311,11 +311,11 @@ algorithm-visualizer/
 
 - AI setup guide: `AI_SETUP_GUIDE.md`
 - AI quick start: `QUICK_START_AI.md`
-- Resume deployment guide: `DEPLOY_RESUME_RENDER.md`
+- Deployment guide: `DEPLOY_RENDER.md`
 
 ---
 
-## Resume-ready highlights
+## Project highlights
 
 - Full-stack TypeScript architecture (React + Express).
 - Rich algorithm coverage (7 sorting + 7 pathfinding + 18 DP).
