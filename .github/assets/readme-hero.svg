@@ -1,0 +1,62 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#071A2A"/>
+      <stop offset="0.52" stop-color="#0B2D45"/>
+      <stop offset="1" stop-color="#134E6F"/>
+    </linearGradient>
+    <linearGradient id="accentA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="accentB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34D399"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" rx="28" fill="url(#bg)"/>
+
+  <circle cx="1040" cy="108" r="220" fill="#1D4E89" opacity="0.22"/>
+  <circle cx="156" cy="542" r="180" fill="#0EA5A2" opacity="0.16"/>
+  <circle cx="1176" cy="540" r="130" fill="#22C55E" opacity="0.18"/>
+
+  <path d="M0 450C122 392 225 390 339 432C453 474 548 470 666 420C779 373 892 369 1007 420C1121 471 1218 474 1280 446V640H0V450Z" fill="#0B2338" opacity="0.55"/>
+
+  <g filter="url(#shadow)">
+    <rect x="84" y="92" width="702" height="438" rx="24" fill="#0D2439" stroke="#2A5273"/>
+    <rect x="116" y="134" width="270" height="16" rx="8" fill="#1F3F5B"/>
+    <rect x="116" y="170" width="460" height="12" rx="6" fill="#1B3750"/>
+    <rect x="116" y="196" width="410" height="12" rx="6" fill="#1B3750"/>
+
+    <rect x="116" y="242" width="128" height="222" rx="12" fill="#0C3045"/>
+    <rect x="256" y="272" width="128" height="192" rx="12" fill="#123850"/>
+    <rect x="396" y="212" width="128" height="252" rx="12" fill="#17405A"/>
+    <rect x="536" y="304" width="128" height="160" rx="12" fill="#204F6E"/>
+
+    <rect x="116" y="432" width="548" height="12" rx="6" fill="#1B3750"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="834" y="156" width="356" height="326" rx="22" fill="#112E44" stroke="#2C5A7C"/>
+    <text x="868" y="212" fill="#A7D8FF" font-size="24" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Project Highlights</text>
+
+    <rect x="868" y="238" width="286" height="48" rx="12" fill="#0D3A53"/>
+    <circle cx="896" cy="262" r="8" fill="url(#accentA)"/>
+    <text x="914" y="268" fill="#E6F5FF" font-size="18" font-family="Segoe UI, Arial, sans-serif">32+ visualized algorithms</text>
+
+    <rect x="868" y="300" width="286" height="48" rx="12" fill="#0D3A53"/>
+    <circle cx="896" cy="324" r="8" fill="url(#accentA)"/>
+    <text x="914" y="330" fill="#E6F5FF" font-size="18" font-family="Segoe UI, Arial, sans-serif">AI-assisted learning panel</text>
+
+    <rect x="868" y="362" width="286" height="48" rx="12" fill="#0D3A53"/>
+    <circle cx="896" cy="386" r="8" fill="url(#accentB)"/>
+    <text x="914" y="392" fill="#E6F5FF" font-size="18" font-family="Segoe UI, Arial, sans-serif">One-URL Render deployment</text>
+  </g>
+
+  <text x="86" y="74" fill="#93C5FD" font-size="16" font-weight="700" font-family="Segoe UI, Arial, sans-serif" letter-spacing="1.4">ALGORITHM VISUALIZER</text>
+  <text x="84" y="578" fill="#D9F2FF" font-size="46" font-weight="800" font-family="Segoe UI, Arial, sans-serif">Learn algorithms by seeing every step.</text>
+</svg>

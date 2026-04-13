@@ -2,6 +2,10 @@
 
 # Algorithm Visualizer
 
+<p align="center">
+  <img src=".github/assets/readme-hero.svg" alt="Algorithm Visualizer hero banner" width="100%" />
+</p>
+
 Interactive algorithm learning platform with real-time visual simulations, AI-assisted explanations, and resume-ready full-stack deployment.
 
 [Live Demo](https://algorithm-visualizer-7yk7.onrender.com) | [Quick Start](#quick-start-local) | [Architecture](#architecture) | [Deployment](#deployment-render-single-url)
@@ -14,6 +18,17 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 ![License](https://img.shields.io/badge/License-MIT-2d9b5f)
 
 </div>
+
+## At a glance
+
+<table>
+  <tr>
+    <td align="center" width="25%"><strong>32+</strong><br/>Algorithms</td>
+    <td align="center" width="25%"><strong>3</strong><br/>Core learning modules</td>
+    <td align="center" width="25%"><strong>1</strong><br/>Single production URL</td>
+    <td align="center" width="25%"><strong>TypeScript</strong><br/>Frontend + backend</td>
+  </tr>
+</table>
 
 ## What this project delivers
 
@@ -31,6 +46,12 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 | Pathfinding Visualizer | 7 algorithms | Editable weighted graphs, presets, random generation, path/cost statistics |
 | Dynamic Programming Hub | 18 problems | Visual mode, compare mode, recursion tree, dry-run tables, C++ references |
 | AI Assistant | Explain + Chat | Context-aware code explanation and interview-style algorithm Q&A |
+
+## Visual preview
+
+<p align="center">
+  <img src=".github/assets/readme-previews.svg" alt="Preview cards for sorting, pathfinding, and dynamic programming modules" width="100%" />
+</p>
 
 ## Algorithms included
 

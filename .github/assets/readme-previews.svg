@@ -1,0 +1,80 @@
+<svg width="1280" height="520" viewBox="0 0 1280 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1280" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EEF6FF"/>
+      <stop offset="1" stop-color="#E2EEF8"/>
+    </linearGradient>
+    <linearGradient id="cardA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0E7490"/>
+      <stop offset="1" stop-color="#155E75"/>
+    </linearGradient>
+    <linearGradient id="cardB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#1E3A8A"/>
+    </linearGradient>
+    <linearGradient id="cardC" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#0B3F3A"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="520" rx="20" fill="url(#canvas)"/>
+
+  <g filter="url(#soft)">
+    <rect x="52" y="54" width="368" height="412" rx="20" fill="url(#cardA)"/>
+    <text x="84" y="104" fill="#DDF8FF" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Sorting</text>
+    <rect x="84" y="130" width="304" height="6" rx="3" fill="#A7F3FF" opacity="0.55"/>
+
+    <rect x="92" y="390" width="26" height="44" rx="4" fill="#7DD3FC"/>
+    <rect x="126" y="354" width="26" height="80" rx="4" fill="#A5F3FC"/>
+    <rect x="160" y="332" width="26" height="102" rx="4" fill="#67E8F9"/>
+    <rect x="194" y="296" width="26" height="138" rx="4" fill="#22D3EE"/>
+    <rect x="228" y="272" width="26" height="162" rx="4" fill="#06B6D4"/>
+    <rect x="262" y="236" width="26" height="198" rx="4" fill="#0891B2"/>
+    <rect x="296" y="194" width="26" height="240" rx="4" fill="#0E7490" stroke="#67E8F9"/>
+  </g>
+
+  <g filter="url(#soft)">
+    <rect x="456" y="54" width="368" height="412" rx="20" fill="url(#cardB)"/>
+    <text x="488" y="104" fill="#E1ECFF" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Pathfinding</text>
+    <rect x="488" y="130" width="304" height="6" rx="3" fill="#C7D2FE" opacity="0.55"/>
+
+    <circle cx="536" cy="220" r="15" fill="#BFDBFE"/>
+    <circle cx="604" cy="188" r="15" fill="#BFDBFE"/>
+    <circle cx="674" cy="244" r="15" fill="#BFDBFE"/>
+    <circle cx="738" cy="186" r="15" fill="#BFDBFE"/>
+    <circle cx="786" cy="266" r="15" fill="#93C5FD"/>
+
+    <path d="M550 216L590 194L660 238L724 192L772 258" stroke="#E0E7FF" stroke-width="6" stroke-linecap="round"/>
+    <path d="M550 216L590 194L660 238" stroke="#A5B4FC" stroke-width="6" stroke-linecap="round"/>
+
+    <rect x="488" y="332" width="304" height="12" rx="6" fill="#1D4ED8"/>
+    <rect x="488" y="354" width="228" height="12" rx="6" fill="#3B82F6"/>
+    <rect x="488" y="376" width="176" height="12" rx="6" fill="#60A5FA"/>
+  </g>
+
+  <g filter="url(#soft)">
+    <rect x="860" y="54" width="368" height="412" rx="20" fill="url(#cardC)"/>
+    <text x="892" y="104" fill="#DDFCF8" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Dynamic Programming</text>
+    <rect x="892" y="130" width="304" height="6" rx="3" fill="#99F6E4" opacity="0.55"/>
+
+    <rect x="904" y="168" width="280" height="42" rx="10" fill="#115E59"/>
+    <text x="920" y="195" fill="#D1FAE5" font-size="18" font-family="Consolas, 'Courier New', monospace">dp[i][j] = min(left, up) + grid[i][j]</text>
+
+    <rect x="904" y="226" width="128" height="86" rx="10" fill="#0F766E"/>
+    <rect x="1048" y="226" width="136" height="86" rx="10" fill="#0F766E"/>
+
+    <text x="922" y="258" fill="#CCFBF1" font-size="16" font-family="Segoe UI, Arial, sans-serif">State</text>
+    <text x="922" y="284" fill="#99F6E4" font-size="20" font-weight="700" font-family="Segoe UI, Arial, sans-serif">18 problems</text>
+
+    <text x="1066" y="258" fill="#CCFBF1" font-size="16" font-family="Segoe UI, Arial, sans-serif">Modes</text>
+    <text x="1066" y="284" fill="#99F6E4" font-size="20" font-weight="700" font-family="Segoe UI, Arial, sans-serif">3 views</text>
+
+    <rect x="904" y="334" width="280" height="14" rx="7" fill="#134E4A"/>
+    <rect x="904" y="358" width="236" height="14" rx="7" fill="#0D9488"/>
+    <rect x="904" y="382" width="198" height="14" rx="7" fill="#14B8A6"/>
+  </g>
+</svg>
