@@ -44,5 +44,6 @@ Use your Render service URL as the project link in your resume, for example:
 ## Notes
 
 - This setup serves frontend and backend from one domain, so no CORS issues for the deployed app.
-- SQLite data is persisted on Render Disk at `/var/data/ai.db`.
+- Free plan does not support disks. SQLite runs at `/tmp/ai.db` and resets on redeploy/restart.
+- If you need persistent database data, upgrade to a paid plan and attach a Render Disk.
 - On free plans, Render may sleep when idle and cold-start on the first request.

@@ -16,12 +16,8 @@ services:
       - key: FRONTEND_URL
         value: "*"
       - key: DATABASE_PATH
-        value: /var/data/ai.db
+        value: /tmp/ai.db
       - key: GROQ_API_KEY
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-    disk:
-      name: algorithm-visualizer-data
-      mountPath: /var/data
-      sizeGB: 1
