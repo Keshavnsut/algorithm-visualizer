@@ -118,10 +118,6 @@ function App() {
         code={aiContext.code}
         language={aiContext.language}
       />
-
-      <footer className="footer">
-        <p>Built with React + TypeScript | <a href="https://github.com" target="_blank" rel="noopener noreferrer">View on GitHub</a></p>
-      </footer>
     </div>
   )
 }

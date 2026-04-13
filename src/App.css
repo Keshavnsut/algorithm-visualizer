@@ -222,23 +222,6 @@ html[data-theme='light'] .quick-sidebar {
   width: 100%;
 }
 
-/* Footer */
-.footer {
-  padding: 1rem 2rem;
-  text-align: center;
-  color: var(--text-secondary);
-  border-top: 1px solid var(--border);
-}
-
-.footer a {
-  color: var(--primary-color);
-  text-decoration: none;
-}
-
-.footer a:hover {
-  text-decoration: underline;
-}
-
 /* Shared Component Styles */
 .visualizer-container {
   background: linear-gradient(160deg, rgba(26, 31, 58, 0.85), rgba(10, 14, 39, 0.9));
@@ -375,7 +358,6 @@ select:focus, input:focus {
   line-height: 1.6;
 }
 
-html[data-theme='light'] .footer,
 html[data-theme='light'] .control-group label,
 html[data-theme='light'] .algorithm-info p,
 html[data-theme='light'] .complexity span,
