@@ -1,326 +1,76 @@
-<div align="center">
-
 # Algorithm Visualizer
 
-<p align="center">
-  <img src=".github/assets/readme-hero.svg" alt="Algorithm Visualizer hero banner" width="100%" />
-</p>
+Algorithm Visualizer is an interactive full-stack web application for learning algorithms through animation, step-by-step state transitions, and guided explanations.
 
-Interactive algorithm learning platform with real-time visual simulations, AI-assisted explanations, and production-grade full-stack deployment.
+Live demo: https://algorithm-visualizer-7yk7.onrender.com
 
-[Live Demo](https://algorithm-visualizer-7yk7.onrender.com) | [Quick Start](#quick-start-local) | [Architecture](#architecture) | [Deployment](#deployment-render-single-url)
+## What I built
 
-![React](https://img.shields.io/badge/React-19-149eca)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-2f74c0)
-![Vite](https://img.shields.io/badge/Vite-7-f2b022)
-![Express](https://img.shields.io/badge/Express-4-111111)
-![Render](https://img.shields.io/badge/Deploy-Render-4f46e5)
-![License](https://img.shields.io/badge/License-MIT-2d9b5f)
+- Sorting Visualizer
+  - Implemented animated sorting workflows with interactive controls for run, reset, speed, and input size.
+  - Added runtime indicators such as comparisons, swaps, and execution history.
+  - Included multiple quick sort pivot strategies for side-by-side behavior exploration.
 
-</div>
+- Pathfinding Visualizer
+  - Implemented an editable graph workspace with support for weighted edges.
+  - Added animated traversal and path rendering with visited and final-path states.
+  - Included graph presets and random graph generation for fast experimentation.
 
-## At a glance
+- Dynamic Programming Section
+  - Built an educational DP interface with step-based visualization of state updates.
+  - Added compare and recursion-tree style views to explain approach differences.
+  - Included dry-run style breakdowns and C++ reference implementations.
 
-<table>
-  <tr>
-    <td align="center" width="25%"><strong>32+</strong><br/>Algorithms</td>
-    <td align="center" width="25%"><strong>3</strong><br/>Core learning modules</td>
-    <td align="center" width="25%"><strong>1</strong><br/>Single production URL</td>
-    <td align="center" width="25%"><strong>TypeScript</strong><br/>Frontend + backend</td>
-  </tr>
-</table>
+- AI Assistant Integration
+  - Added AI workflows for explanation, chat, hints, optimization, and validation.
+  - Implemented backend API routes and history persistence for AI interactions.
 
-## Executive summary
+- Production Deployment
+  - Integrated frontend and backend into a single deployed service URL.
+  - Added Dockerized build flow and Render deployment configuration.
+  - Added health and status endpoints for runtime verification.
 
-| Signal | Evidence |
-|---|---|
-| Product depth | 32+ algorithms across sorting, pathfinding, and dynamic programming |
-| Engineering scope | Full-stack TypeScript architecture (React + Express) |
-| AI integration | Built-in Explain + Chat workflow with provider abstraction |
-| Deployment maturity | Dockerized, single-domain Render deployment with health checks |
-| Scope coverage | Combines algorithms, frontend UX, backend APIs, and production deployment |
+## Architecture summary
 
-## Navigation
+- Frontend: React + TypeScript + Vite
+- Backend: Express + TypeScript
+- Database: SQLite
+- AI provider support: OpenAI-compatible providers
+- Deployment target: Render
 
-- [Feature snapshot](#feature-snapshot)
-- [Algorithms included](#algorithms-included)
-- [Architecture](#architecture)
-- [Quick start (local)](#quick-start-local)
-- [Deployment (Render single URL)](#deployment-render-single-url)
-- [Project highlights](#project-highlights)
+## Running locally
 
-## Project overview
-
-### Learning experience
-
-- Visual, interactive algorithm learning instead of static notes.
-- Three complete modules: Sorting, Pathfinding, and Dynamic Programming.
-- AI helper embedded in the UI for algorithm chat and code explanation.
-
-### Engineering quality
-
-- Modular component architecture with reusable visual controls.
-- Consistent TypeScript types across frontend and backend.
-- Persistent AI history endpoints for explain/chat/hint workflows.
-
-### Production readiness
-
-- Production deployment with one public URL (frontend + backend together).
-- Health checks, environment-based config, and containerized build pipeline.
-
----
-
-## Feature snapshot
-
-| Module | Coverage | Highlights |
-|---|---|---|
-| Sorting Visualizer | 7 algorithms | Live bars, speed/size controls, pivot strategies, comparisons/swaps, run history |
-| Pathfinding Visualizer | 7 algorithms | Editable weighted graphs, presets, random generation, path/cost statistics |
-| Dynamic Programming Hub | 18 problems | Visual mode, compare mode, recursion tree, dry-run tables, C++ references |
-| AI Assistant | Explain + Chat | Context-aware code explanation and interview-style algorithm Q&A |
-
-## Visual preview
-
-<p align="center">
-  <img src=".github/assets/readme-previews.svg" alt="Preview cards for sorting, pathfinding, and dynamic programming modules" width="100%" />
-</p>
-
----
-
-## Algorithms included
-
-<details>
-<summary><strong>Sorting (7)</strong></summary>
-
-- Bubble Sort
-- Selection Sort
-- Insertion Sort
-- Merge Sort
-- Quick Sort (first, last, random, median-of-three pivot)
-- Heap Sort
-- Shell Sort
-
-</details>
-
-<details>
-<summary><strong>Pathfinding (7)</strong></summary>
-
-- Breadth-First Search (BFS)
-- Depth-First Search (DFS)
-- Dijkstra
-- A*
-- Bellman-Ford
-- Bidirectional Search
-- Greedy Best-First Search
-
-</details>
-
-<details>
-<summary><strong>Dynamic Programming (18)</strong></summary>
-
-- Climbing Stairs
-- House Robber
-- Coin Change
-- Unique Paths
-- Longest Common Subsequence
-- Edit Distance
-- 0/1 Knapsack
-- Partition Equal Subset Sum
-- Target Sum
-- Longest Increasing Subsequence
-- Russian Doll Envelopes
-- Number of LIS
-- Matrix Chain Multiplication
-- Burst Balloons
-- Palindrome Partitioning
-- House Robber III
-- Diameter Variants
-- Tree Matching
-
-</details>
-
----
-
-## Architecture
-
-```mermaid
-flowchart LR
-  U[User Browser] --> F[React + TypeScript + Vite Frontend]
-  F -->|/api/ai/*| B[Express + TypeScript Backend]
-  B --> A[OpenAI or Groq]
-  B --> D[(SQLite)]
-  B --> S[Static Frontend Build]
-```
-
----
-
-## Tech stack
-
-### Frontend
-
-- React 19
-- TypeScript
-- Vite
-- CSS
-
-### Backend
-
-- Node.js + Express
-- TypeScript
-- better-sqlite3
-- OpenAI SDK (OpenAI/Groq compatible)
-
-### DevOps
-
-- Docker (multi-stage production image)
-- Render Blueprint (`render.yaml`)
-
----
-
-## Quick start (local)
-
-### Prerequisites
-
-- Node.js 18+
+Prerequisites:
+- Node.js
 - npm
 
-### Option A: Manual setup
+Frontend:
 
 ```bash
-# 1) Install frontend dependencies
 npm install
+npm run dev
+```
 
-# 2) Install backend dependencies
+Backend:
+
+```bash
 cd backend
 npm install
-
-# 3) Create backend environment file
 cp .env.example .env
-
-# 4) Initialize local SQLite database
 npm run db:init
-```
-
-Run in two terminals:
-
-```bash
-# Terminal 1 (project root)
 npm run dev
 ```
 
-```bash
-# Terminal 2
-cd backend
-npm run dev
-```
+## Deployment
 
-App URL: `http://localhost:5173`
+- Deployment guide: DEPLOY_RENDER.md
+- Render blueprint: render.yaml
+- Container build: Dockerfile
 
-### Option B: Setup scripts
+## Additional documentation
 
-- Windows: `setup.bat`
-- macOS/Linux: `./setup.sh`
-
-### Option C: Docker Compose
-
-```bash
-docker-compose up --build
-```
-
----
-
-## Environment variables (backend)
-
-Copy `backend/.env.example` to `backend/.env` and configure:
-
-| Variable | Required | Description |
-|---|---|---|
-| `AI_PROVIDER` | Yes | `openai` or `groq` |
-| `OPENAI_API_KEY` | If using OpenAI | OpenAI API key |
-| `OPENAI_MODEL` | No | Default: `gpt-4o-mini` |
-| `GROQ_API_KEY` | If using Groq | Groq API key |
-| `GROQ_MODEL` | No | Default: `llama-3.1-8b-instant` |
-| `DATABASE_PATH` | No | SQLite path (dev default `./data/ai.db`) |
-| `FRONTEND_URL` | No | Allowed CORS origin(s) |
-| `PORT` | No | Backend port (default `5000`) |
-
----
-
-## API overview
-
-Base route: `/api/ai`
-
-| Method | Route | Purpose |
-|---|---|---|
-| GET | `/status` | Provider/model health |
-| POST | `/explain` | Explain submitted code |
-| POST | `/chat` | Ask algorithm questions |
-| POST | `/hint` | Get graduated hints |
-| POST | `/optimize` | Suggest optimizations |
-| POST | `/validate` | Explain compile/runtime errors |
-| GET | `/chat-history/:problemId` | Read chat history |
-| GET | `/hint-history/:problemId` | Read hint history |
-| GET | `/explanation-history/:problemId` | Read explanation history |
-
----
-
-## Deployment (Render single URL)
-
-This repository includes a production-ready single-service deployment:
-
-- Dockerfile: `Dockerfile`
-- Blueprint: `render.yaml`
-- Step-by-step deployment guide: `DEPLOY_RENDER.md`
-
-Production routes:
-
-- Frontend: `/`
-- Health: `/health`
-- AI API: `/api/ai/*`
-
-Free-tier note:
-
-- Render free plan does not support disks.
-- SQLite uses `/tmp/ai.db` in free-tier deployment, so data is ephemeral.
-
----
-
-## Repository structure
-
-```text
-algorithm-visualizer/
-  src/
-    components/
-      SortingVisualizer/
-      PathfindingVisualizer/
-      DPSection/
-      AIAssistant/
-  backend/
-    src/
-      routes/
-      services/
-      db/
-  Dockerfile
-  docker-compose.yml
-  render.yaml
-```
-
----
-
-## Documentation
-
-- AI setup guide: `AI_SETUP_GUIDE.md`
-- AI quick start: `QUICK_START_AI.md`
-- Deployment guide: `DEPLOY_RENDER.md`
-
----
-
-## Project highlights
-
-- Full-stack TypeScript architecture (React + Express).
-- Rich algorithm coverage (7 sorting + 7 pathfinding + 18 DP).
-- AI-assisted education workflow with persistent history tracking.
-- Production Docker build and public Render deployment.
+- AI setup: AI_SETUP_GUIDE.md
+- AI quick start: QUICK_START_AI.md
 
 ## License
 
