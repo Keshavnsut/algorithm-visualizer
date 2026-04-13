@@ -30,13 +30,45 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
   </tr>
 </table>
 
-## What this project delivers
+## Recruiter quick scan (30 seconds)
+
+| Signal | Evidence |
+|---|---|
+| Product depth | 32+ algorithms across sorting, pathfinding, and dynamic programming |
+| Engineering scope | Full-stack TypeScript architecture (React + Express) |
+| AI integration | Built-in Explain + Chat workflow with provider abstraction |
+| Deployment maturity | Dockerized, single-domain Render deployment with health checks |
+| Portfolio value | Combines algorithms, frontend UX, backend APIs, and production deployment |
+
+## Navigation
+
+- [Feature snapshot](#feature-snapshot)
+- [Algorithms included](#algorithms-included)
+- [Architecture](#architecture)
+- [Quick start (local)](#quick-start-local)
+- [Deployment (Render single URL)](#deployment-render-single-url)
+- [Resume-ready highlights](#resume-ready-highlights)
+
+## Why this project stands out
+
+### Learning experience
 
 - Visual, interactive algorithm learning instead of static notes.
 - Three complete modules: Sorting, Pathfinding, and Dynamic Programming.
 - AI helper embedded in the UI for algorithm chat and code explanation.
+
+### Engineering quality
+
+- Modular component architecture with reusable visual controls.
+- Consistent TypeScript types across frontend and backend.
+- Persistent AI history endpoints for explain/chat/hint workflows.
+
+### Production readiness
+
 - Production deployment with one public URL (frontend + backend together).
-- Clean TypeScript codebase suitable for internship/resume portfolio review.
+- Health checks, environment-based config, and containerized build pipeline.
+
+---
 
 ## Feature snapshot
 
@@ -53,9 +85,12 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
   <img src=".github/assets/readme-previews.svg" alt="Preview cards for sorting, pathfinding, and dynamic programming modules" width="100%" />
 </p>
 
+---
+
 ## Algorithms included
 
-### Sorting (7)
+<details>
+<summary><strong>Sorting (7)</strong></summary>
 
 - Bubble Sort
 - Selection Sort
@@ -65,7 +100,10 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 - Heap Sort
 - Shell Sort
 
-### Pathfinding (7)
+</details>
+
+<details>
+<summary><strong>Pathfinding (7)</strong></summary>
 
 - Breadth-First Search (BFS)
 - Depth-First Search (DFS)
@@ -75,7 +113,10 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 - Bidirectional Search
 - Greedy Best-First Search
 
-### Dynamic Programming (18)
+</details>
+
+<details>
+<summary><strong>Dynamic Programming (18)</strong></summary>
 
 - Climbing Stairs
 - House Robber
@@ -96,6 +137,10 @@ Interactive algorithm learning platform with real-time visual simulations, AI-as
 - Diameter Variants
 - Tree Matching
 
+</details>
+
+---
+
 ## Architecture
 
 ```mermaid
@@ -106,6 +151,8 @@ flowchart LR
   B --> D[(SQLite)]
   B --> S[Static Frontend Build]
 ```
+
+---
 
 ## Tech stack
 
@@ -127,6 +174,8 @@ flowchart LR
 
 - Docker (multi-stage production image)
 - Render Blueprint (`render.yaml`)
+
+---
 
 ## Quick start (local)
 
@@ -178,6 +227,8 @@ App URL: `http://localhost:5173`
 docker-compose up --build
 ```
 
+---
+
 ## Environment variables (backend)
 
 Copy `backend/.env.example` to `backend/.env` and configure:
@@ -192,6 +243,8 @@ Copy `backend/.env.example` to `backend/.env` and configure:
 | `DATABASE_PATH` | No | SQLite path (dev default `./data/ai.db`) |
 | `FRONTEND_URL` | No | Allowed CORS origin(s) |
 | `PORT` | No | Backend port (default `5000`) |
+
+---
 
 ## API overview
 
@@ -208,6 +261,8 @@ Base route: `/api/ai`
 | GET | `/chat-history/:problemId` | Read chat history |
 | GET | `/hint-history/:problemId` | Read hint history |
 | GET | `/explanation-history/:problemId` | Read explanation history |
+
+---
 
 ## Deployment (Render single URL)
 
@@ -227,6 +282,8 @@ Free-tier note:
 
 - Render free plan does not support disks.
 - SQLite uses `/tmp/ai.db` in free-tier deployment, so data is ephemeral.
+
+---
 
 ## Repository structure
 
@@ -248,11 +305,15 @@ algorithm-visualizer/
   render.yaml
 ```
 
+---
+
 ## Documentation
 
 - AI setup guide: `AI_SETUP_GUIDE.md`
 - AI quick start: `QUICK_START_AI.md`
 - Resume deployment guide: `DEPLOY_RESUME_RENDER.md`
+
+---
 
 ## Resume-ready highlights
 
