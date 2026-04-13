@@ -63,6 +63,8 @@ npm run dev
 
 ## Deployment
 
+![Deployment Architecture](.github/assets/deployment-architecture.svg)
+
 - Deployment guide: DEPLOY_RENDER.md
 - Render blueprint: render.yaml
 - Container build: Dockerfile
