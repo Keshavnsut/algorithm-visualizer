@@ -1667,19 +1667,69 @@ html[data-theme='light'] .house-track,
 html[data-theme='light'] .dp-matrix-wrap,
 html[data-theme='light'] .dp-card,
 html[data-theme='light'] .dp-problem-card {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(100, 116, 139, 0.24);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.94) 0%, rgba(244, 247, 255, 0.9) 100%);
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 10px 28px rgba(79, 70, 229, 0.08);
 }
 
 html[data-theme='light'] .dp-problem-tile {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(100, 116, 139, 0.22);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 245, 255, 0.9) 100%);
+  border-color: rgba(99, 102, 241, 0.24);
+}
+
+html[data-theme='light'] .dp-problem-tile:hover {
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.16);
+  border-color: rgba(99, 102, 241, 0.46);
 }
 
 html[data-theme='light'] .dp-problem-tile-head span {
   color: #1d4ed8;
   background: rgba(59, 130, 246, 0.12);
   border-color: rgba(59, 130, 246, 0.32);
+}
+
+html[data-theme='light'] .dp-view-btn,
+html[data-theme='light'] .dp-mode-btn,
+html[data-theme='light'] .dp-problem-nav-btn,
+html[data-theme='light'] .dp-explain-toggle,
+html[data-theme='light'] .dp-text-input {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(99, 102, 241, 0.26);
+  color: #1f2937;
+}
+
+html[data-theme='light'] .dp-view-btn.active,
+html[data-theme='light'] .dp-mode-btn.active {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(79, 70, 229, 0.48);
+  color: #312e81;
+}
+
+html[data-theme='light'] .dp-play-btn {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.24));
+  border-color: rgba(5, 150, 105, 0.48);
+  color: #065f46;
+}
+
+html[data-theme='light'] .dp-play-btn:hover {
+  border-color: rgba(5, 150, 105, 0.72);
+  color: #064e3b;
+}
+
+html[data-theme='light'] .dp-transition-player {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 255, 0.9) 100%);
+  border-color: rgba(99, 102, 241, 0.24);
+}
+
+html[data-theme='light'] .dp-transition-meta span {
+  background: rgba(59, 130, 246, 0.09);
+  border-color: rgba(59, 130, 246, 0.34);
+  color: #1e40af;
+}
+
+html[data-theme='light'] .dp-transitions li.active {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1e3a8a;
 }
 
 html[data-theme='light'] .dp-dry-run-table th {

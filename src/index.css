@@ -16,6 +16,7 @@
   --surface-hover: #2d3659;
   --text-primary: #f0f4f8;
   --text-secondary: #a0aec0;
+  --text-tertiary: #7b8ba3;
   --border: #3f4663;
   --border-soft: rgba(148, 163, 184, 0.28);
   --divider: rgba(148, 163, 184, 0.22);
@@ -30,24 +31,32 @@ html[data-theme='light'] {
   --accent-color: #7c3aed;
   --danger-color: #dc2626;
   --warning-color: #ca8a04;
-  --background: #f4f6fb;
+  --background: #eef3ff;
   --surface: #ffffff;
-  --surface-hover: #eef2ff;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --border: #d5d9e6;
-  --border-soft: rgba(30, 41, 59, 0.14);
-  --divider: rgba(100, 116, 139, 0.22);
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  --surface-hover: #e7edff;
+  --text-primary: #0b1220;
+  --text-secondary: #2f3d55;
+  --text-tertiary: #465a77;
+  --border: #c6d2e6;
+  --border-soft: rgba(15, 23, 42, 0.16);
+  --divider: rgba(51, 65, 85, 0.24);
+  --card-bg: rgba(255, 255, 255, 0.84);
+  --card-shadow: 0 14px 34px rgba(30, 41, 59, 0.11);
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI Variable', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--background);
   color: var(--text-primary);
   min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   transition: background 0.35s ease, color 0.35s ease;
+}
+
+html[data-theme='light'] body {
+  color: var(--text-primary);
 }
 
 #root {

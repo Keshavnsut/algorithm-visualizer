@@ -17,13 +17,15 @@ function HintSystem({ problemName, problemId }: HintSystemProps) {
 
     const loadHintHistory = async () => {
       try {
-        const data = await getJson<{ history: Array<{ hint_level: number; hint: string }> }>(`/api/ai/hint-history/${problemId}`)
+        const data = await getJson<{ history: Array<{ hint_level: number; hint?: string; hint_text?: string }> }>(
+          `/api/ai/hint-history/${problemId}`
+        )
         if (!active) return
 
         const next = ['', '', '']
         data.history.forEach((entry) => {
           const idx = Math.min(3, Math.max(1, entry.hint_level)) - 1
-          next[idx] = entry.hint
+          next[idx] = entry.hint ?? entry.hint_text ?? ''
         })
 
         setHints(next)

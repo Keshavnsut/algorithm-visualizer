@@ -94,24 +94,43 @@ function AlgorithmChat({ problemName, problemId, code = '', language = 'python' 
     localStorage.removeItem(storageKey)
   }
 
+  const messageCountLabel = `${messages.length} ${messages.length === 1 ? 'message' : 'messages'}`
+
   return (
     <div className="ai-chat">
+      <div className="chat-toolbar">
+        <span className="chat-count">{messageCountLabel}</span>
+        <button type="button" className="chat-toolbar-btn" onClick={resetChat} disabled={loading || messages.length === 0}>
+          Reset Chat
+        </button>
+      </div>
+
       <div className="chat-messages">
         {messages.length === 0 && (
           <div className="chat-welcome">
-            <p>Ask me anything about {problemName} or algorithms!</p>
-            <p className="chat-hint">Example: "What's the time complexity?" "How do I approach this?"</p>
+            <p>Ask me anything about {problemName}.</p>
+            <p className="chat-hint">Try: "What is the core intuition?" or "Can you review my approach?"</p>
           </div>
         )}
         {messages.map((msg, idx) => (
           <div key={idx} className={`chat-message ${msg.role}`}>
-            <div className="message-content">{msg.content}</div>
+            <span className="message-avatar" aria-hidden>
+              {msg.role === 'assistant' ? 'AI' : 'You'}
+            </span>
+            <div className="message-body">
+              <span className="message-role">{msg.role === 'assistant' ? 'Assistant' : 'You'}</span>
+              <div className="message-content">{msg.content}</div>
+            </div>
           </div>
         ))}
         {loading && (
           <div className="chat-message assistant">
-            <div className="message-content">
-              <span className="typing-indicator">Thinking...</span>
+            <span className="message-avatar" aria-hidden>AI</span>
+            <div className="message-body">
+              <span className="message-role">Assistant</span>
+              <div className="message-content">
+                <span className="typing-indicator">Thinking...</span>
+              </div>
             </div>
           </div>
         )}
@@ -120,12 +139,15 @@ function AlgorithmChat({ problemName, problemId, code = '', language = 'python' 
 
       {error && <div className="ai-error">{error}</div>}
 
-      <div className="chat-starters">
-        {starterPrompts.map((prompt) => (
-          <button key={prompt} type="button" className="chat-starter-btn" onClick={() => void sendMessage(prompt)} disabled={loading}>
-            {prompt.length > 60 ? `${prompt.slice(0, 60)}...` : prompt}
-          </button>
-        ))}
+      <div className="chat-starters-wrap">
+        <p className="chat-starters-title">Quick prompts</p>
+        <div className="chat-starters">
+          {starterPrompts.map((prompt) => (
+            <button key={prompt} type="button" className="chat-starter-btn" onClick={() => void sendMessage(prompt)} disabled={loading}>
+              {prompt.length > 70 ? `${prompt.slice(0, 70)}...` : prompt}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="chat-input">
@@ -141,7 +163,7 @@ function AlgorithmChat({ problemName, problemId, code = '', language = 'python' 
           placeholder="Ask a question..."
           disabled={loading}
         />
-        <button onClick={() => void sendMessage()} disabled={loading || !input.trim()}>
+        <button type="button" onClick={() => void sendMessage()} disabled={loading || !input.trim()}>
           Send
         </button>
         <button type="button" onClick={resetChat} disabled={loading || messages.length === 0}>

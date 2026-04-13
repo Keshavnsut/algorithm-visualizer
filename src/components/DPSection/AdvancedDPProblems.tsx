@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 type VisualMode = 'dp' | 'compare' | 'tree' | 'dryrun'
 type ProblemView = 'visual' | 'cpp'
@@ -30,6 +30,8 @@ interface Props {
   problemId: string
   title: string
   onNavigate: (problemId: ProblemId) => void
+  quickStartMode?: 'visual' | 'tree' | 'dryrun' | 'cpp'
+  quickStartVersion?: number
 }
 
 interface SolverResult {
@@ -185,6 +187,12 @@ const buildStaticTreeGraph = (rootLabel: string, answerValue: string) => {
 }
 
 const defaultsByProblem: Record<string, string> = {
+  climbing: '6',
+  house: '2,7,9,3,1',
+  'coin-change': '1,2,5|11',
+  'unique-paths': '3,5',
+  lcs: 'abcde|ace',
+  'edit-distance': 'horse|ros',
   'knapsack-01': '1,3,4,5|1,4,5,7|7',
   'partition-equal-subset-sum': '1,5,11,5',
   'target-sum': '1,1,1,1,1|3',
@@ -200,6 +208,144 @@ const defaultsByProblem: Record<string, string> = {
 }
 
 export const ADVANCED_DP_CPP_VARIANTS: Record<string, { tabulation: string; memoization: string }> = {
+  climbing: {
+    tabulation: `int climbStairs(int n) {
+  if (n <= 1) return 1;
+  vector<int> dp(n + 1, 0);
+  dp[0] = 1;
+  dp[1] = 1;
+  for (int i = 2; i <= n; i++) {
+    dp[i] = dp[i - 1] + dp[i - 2];
+  }
+  return dp[n];
+}`,
+    memoization: `int solve(int n, vector<int>& memo) {
+  if (n <= 1) return 1;
+  if (memo[n] != -1) return memo[n];
+  return memo[n] = solve(n - 1, memo) + solve(n - 2, memo);
+}
+int climbStairs(int n) {
+  vector<int> memo(n + 1, -1);
+  return solve(n, memo);
+}`,
+  },
+  house: {
+    tabulation: `int rob(vector<int>& nums) {
+  int n = nums.size();
+  vector<int> dp(n + 1, 0);
+  for (int i = 1; i <= n; i++) {
+    int skip = dp[i - 1];
+    int take = nums[i - 1] + (i >= 2 ? dp[i - 2] : 0);
+    dp[i] = max(skip, take);
+  }
+  return dp[n];
+}`,
+    memoization: `int solve(int i, vector<int>& nums, vector<int>& memo) {
+  if (i >= (int)nums.size()) return 0;
+  if (memo[i] != -1) return memo[i];
+  int skip = solve(i + 1, nums, memo);
+  int take = nums[i] + solve(i + 2, nums, memo);
+  return memo[i] = max(skip, take);
+}
+int rob(vector<int>& nums) {
+  vector<int> memo(nums.size(), -1);
+  return solve(0, nums, memo);
+}`,
+  },
+  'coin-change': {
+    tabulation: `int coinChange(vector<int>& coins, int amount) {
+  const int INF = 1e9;
+  vector<int> dp(amount + 1, INF);
+  dp[0] = 0;
+  for (int a = 1; a <= amount; a++) {
+    for (int c : coins) {
+      if (c <= a && dp[a - c] != INF) {
+        dp[a] = min(dp[a], dp[a - c] + 1);
+      }
+    }
+  }
+  return dp[amount] == INF ? -1 : dp[amount];
+}`,
+    memoization: `int solve(int amount, vector<int>& coins, vector<int>& memo) {
+  if (amount == 0) return 0;
+  if (amount < 0) return 1e9;
+  if (memo[amount] != -1) return memo[amount];
+  int best = 1e9;
+  for (int c : coins) {
+    best = min(best, 1 + solve(amount - c, coins, memo));
+  }
+  return memo[amount] = best;
+}
+int coinChange(vector<int>& coins, int amount) {
+  vector<int> memo(amount + 1, -1);
+  int ans = solve(amount, coins, memo);
+  return ans >= 1e9 ? -1 : ans;
+}`,
+  },
+  'unique-paths': {
+    tabulation: `int uniquePaths(int m, int n) {
+  vector<vector<int>> dp(m, vector<int>(n, 1));
+  for (int i = 1; i < m; i++) {
+    for (int j = 1; j < n; j++) {
+      dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+    }
+  }
+  return dp[m - 1][n - 1];
+}`,
+    memoization: `int solve(int i, int j, vector<vector<int>>& memo) {
+  if (i == 0 || j == 0) return 1;
+  if (memo[i][j] != -1) return memo[i][j];
+  return memo[i][j] = solve(i - 1, j, memo) + solve(i, j - 1, memo);
+}
+int uniquePaths(int m, int n) {
+  vector<vector<int>> memo(m, vector<int>(n, -1));
+  return solve(m - 1, n - 1, memo);
+}`,
+  },
+  lcs: {
+    tabulation: `int lcs(string a, string b) {
+  int n = a.size(), m = b.size();
+  vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+  for (int i = 1; i <= n; i++) {
+    for (int j = 1; j <= m; j++) {
+      if (a[i - 1] == b[j - 1]) dp[i][j] = 1 + dp[i - 1][j - 1];
+      else dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  return dp[n][m];
+}`,
+    memoization: `int solve(int i, int j, string& a, string& b, vector<vector<int>>& memo) {
+  if (i == 0 || j == 0) return 0;
+  if (memo[i][j] != -1) return memo[i][j];
+  if (a[i - 1] == b[j - 1]) return memo[i][j] = 1 + solve(i - 1, j - 1, a, b, memo);
+  return memo[i][j] = max(solve(i - 1, j, a, b, memo), solve(i, j - 1, a, b, memo));
+}`,
+  },
+  'edit-distance': {
+    tabulation: `int minDistance(string a, string b) {
+  int n = a.size(), m = b.size();
+  vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+  for (int i = 0; i <= n; i++) dp[i][0] = i;
+  for (int j = 0; j <= m; j++) dp[0][j] = j;
+  for (int i = 1; i <= n; i++) {
+    for (int j = 1; j <= m; j++) {
+      if (a[i - 1] == b[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+      else dp[i][j] = 1 + min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
+    }
+  }
+  return dp[n][m];
+}`,
+    memoization: `int solve(int i, int j, string& a, string& b, vector<vector<int>>& memo) {
+  if (i == 0) return j;
+  if (j == 0) return i;
+  if (memo[i][j] != -1) return memo[i][j];
+  if (a[i - 1] == b[j - 1]) return memo[i][j] = solve(i - 1, j - 1, a, b, memo);
+  int del = solve(i - 1, j, a, b, memo);
+  int ins = solve(i, j - 1, a, b, memo);
+  int rep = solve(i - 1, j - 1, a, b, memo);
+  return memo[i][j] = 1 + min({del, ins, rep});
+}`,
+  },
   'knapsack-01': {
     tabulation: `int knapsack(vector<int>& wt, vector<int>& val, int W) {
   int n = wt.size();
@@ -463,22 +609,28 @@ int diameter(TreeNode* root) {
     tabulation: `pair<int,int> dfs(TreeNode* u) {
   if (!u) return {0, 0};
   auto L = dfs(u->left), R = dfs(u->right);
-  int free = max(L.first, L.second) + max(R.first, R.second);
-  int match = 0;
-  if (u->left) match = max(match, 1 + L.second + max(R.first, R.second));
-  if (u->right) match = max(match, 1 + R.second + max(L.first, L.second));
-  return {free, match};
+  int matchedToParent = L.first + R.first;
+  int free = L.first + R.first;
+  if (u->left) free = max(free, 1 + L.second + R.first);
+  if (u->right) free = max(free, 1 + L.first + R.second);
+  return {free, matchedToParent};
+}
+int maxMatching(TreeNode* root) {
+  return dfs(root).first;
 }`,
     memoization: `unordered_map<TreeNode*, pair<int,int>> memo;
 pair<int,int> solve(TreeNode* u) {
   if (!u) return {0, 0};
   if (memo.count(u)) return memo[u];
   auto L = solve(u->left), R = solve(u->right);
-  int free = max(L.first, L.second) + max(R.first, R.second);
-  int match = 0;
-  if (u->left) match = max(match, 1 + L.second + max(R.first, R.second));
-  if (u->right) match = max(match, 1 + R.second + max(L.first, L.second));
-  return memo[u] = {free, match};
+  int matchedToParent = L.first + R.first;
+  int free = L.first + R.first;
+  if (u->left) free = max(free, 1 + L.second + R.first);
+  if (u->right) free = max(free, 1 + L.first + R.second);
+  return memo[u] = {free, matchedToParent};
+}
+int maxMatching(TreeNode* root) {
+  return solve(root).first;
 }`,
   },
 }
@@ -492,6 +644,294 @@ const toSingleRow = (arr: number[]): number[][] => [arr]
 
 const solveProblem = (problemId: string, rawInput: string): SolverResult => {
   switch (problemId) {
+    case 'climbing': {
+      const n = Math.max(0, Math.floor(Number(rawInput) || 0))
+      const dp = Array.from({ length: n + 1 }, () => 0)
+      const transitions: string[] = []
+      const dryRows: string[][] = []
+
+      dp[0] = 1
+      transitions.push('dp[0] = 1')
+      dryRows.push(['0', 'base case', '1'])
+
+      if (n >= 1) {
+        dp[1] = 1
+        transitions.push('dp[1] = 1')
+        dryRows.push(['1', 'base case', '1'])
+      }
+
+      for (let i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2]
+        transitions.push(`dp[${i}] = dp[${i - 1}] + dp[${i - 2}] = ${dp[i]}`)
+        dryRows.push([`${i}`, `dp[${i - 1}] + dp[${i - 2}]`, `${dp[i]}`])
+      }
+
+      return {
+        answerLabel: 'Ways to Climb',
+        answerValue: `${dp[n] ?? 1}`,
+        explanation: {
+          recurrence: 'dp[i] = dp[i-1] + dp[i-2] with dp[0]=1 and dp[1]=1',
+          complexityTime: 'O(n)',
+          complexitySpace: 'O(n)',
+        },
+        matrix: toSingleRow(dp),
+        transitions,
+        dryRunHeaders: ['Step', 'Formula', 'Result'],
+        dryRunRows: clampRows(dryRows),
+        estimatedRecCalls: Math.min(1_000_000_000, Math.pow(2, Math.max(1, n))),
+        stateCount: n + 1,
+        transitionCount: Math.max(0, n - 1),
+        cppCode: `int climbStairs(int n) {\n  if (n <= 1) return 1;\n  vector<int> dp(n + 1, 0);\n  dp[0] = 1;\n  dp[1] = 1;\n  for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];\n  return dp[n];\n}`,
+        treeRoot: `F(${n})`,
+      }
+    }
+
+    case 'house': {
+      const nums = parseNumberList(rawInput).map((v) => Math.max(0, Math.floor(v)))
+      const n = nums.length
+      if (n === 0) {
+        return {
+          answerLabel: 'Maximum Loot',
+          answerValue: '0',
+          explanation: {
+            recurrence: 'dp[i] = max(dp[i-1], nums[i-1] + dp[i-2])',
+            complexityTime: 'O(n)',
+            complexitySpace: 'O(n)',
+          },
+          matrix: [[0]],
+          transitions: ['No houses provided'],
+          dryRunHeaders: ['Info'],
+          dryRunRows: [['Enter comma-separated house values']],
+          estimatedRecCalls: 1,
+          stateCount: 1,
+          transitionCount: 0,
+          cppCode: `int rob(vector<int>& nums) {\n  int n = nums.size();\n  vector<int> dp(n + 1, 0);\n  for (int i = 1; i <= n; i++) {\n    int skip = dp[i - 1];\n    int take = nums[i - 1] + (i >= 2 ? dp[i - 2] : 0);\n    dp[i] = max(skip, take);\n  }\n  return dp[n];\n}`,
+          treeRoot: 'R(0)',
+        }
+      }
+
+      const dp = Array.from({ length: n + 1 }, () => 0)
+      const transitions: string[] = []
+      const dryRows: string[][] = []
+
+      for (let i = 1; i <= n; i++) {
+        const skip = dp[i - 1]
+        const take = nums[i - 1] + (i >= 2 ? dp[i - 2] : 0)
+        dp[i] = Math.max(skip, take)
+        transitions.push(`dp[${i}] = max(skip=${skip}, take=${take}) = ${dp[i]}`)
+        dryRows.push([`${i}`, `${nums[i - 1]}`, `${skip}`, `${take}`, `${dp[i]}`])
+      }
+
+      return {
+        answerLabel: 'Maximum Loot',
+        answerValue: `${dp[n]}`,
+        explanation: {
+          recurrence: 'dp[i] = max(dp[i-1], nums[i-1] + dp[i-2])',
+          complexityTime: 'O(n)',
+          complexitySpace: 'O(n)',
+        },
+        matrix: [nums, dp.slice(1)],
+        transitions,
+        dryRunHeaders: ['House', 'Value', 'Skip', 'Take', 'Best'],
+        dryRunRows: clampRows(dryRows),
+        estimatedRecCalls: Math.min(1_000_000_000, Math.pow(2, n)),
+        stateCount: n + 1,
+        transitionCount: n,
+        cppCode: `int rob(vector<int>& nums) {\n  int n = nums.size();\n  vector<int> dp(n + 1, 0);\n  for (int i = 1; i <= n; i++) {\n    int skip = dp[i - 1];\n    int take = nums[i - 1] + (i >= 2 ? dp[i - 2] : 0);\n    dp[i] = max(skip, take);\n  }\n  return dp[n];\n}`,
+        treeRoot: `R(${n})`,
+      }
+    }
+
+    case 'coin-change': {
+      const [coinsRaw = '', amountRaw = '0'] = rawInput.split('|')
+      const parsedCoins = parseNumberList(coinsRaw)
+        .map((v) => Math.floor(v))
+        .filter((v) => v > 0)
+      const coins = Array.from(new Set(parsedCoins)).sort((a, b) => a - b)
+      const normalizedCoins = coins.length > 0 ? coins : [1, 2, 5]
+      const amount = Math.max(0, Math.floor(Number(amountRaw) || 0))
+
+      const INF = Number.MAX_SAFE_INTEGER
+      const dp = Array.from({ length: amount + 1 }, () => INF)
+      const transitions: string[] = []
+      const dryRows: string[][] = []
+      dp[0] = 0
+
+      for (let a = 1; a <= amount; a++) {
+        let best = INF
+        const choices: string[] = []
+        for (const coin of normalizedCoins) {
+          if (coin > a || dp[a - coin] === INF) continue
+          const candidate = dp[a - coin] + 1
+          choices.push(`${coin}:${candidate}`)
+          best = Math.min(best, candidate)
+        }
+        dp[a] = best
+        if (transitions.length < 90) {
+          transitions.push(best === INF ? `dp[${a}] = INF` : `dp[${a}] = ${best}`)
+        }
+        dryRows.push([`${a}`, choices.length > 0 ? choices.join(' | ') : 'unreachable', best === INF ? 'INF' : `${best}`])
+      }
+
+      return {
+        answerLabel: 'Minimum Coins',
+        answerValue: `${dp[amount] === INF ? -1 : dp[amount]}`,
+        explanation: {
+          recurrence: 'dp[a] = min(dp[a-coin] + 1) for all valid coin choices',
+          complexityTime: `O(amount * coins), amount=${amount}, coins=${normalizedCoins.length}`,
+          complexitySpace: 'O(amount)',
+        },
+        matrix: [dp.map((v) => (v === INF ? -1 : v))],
+        transitions,
+        dryRunHeaders: ['Amount', 'Choices (coin:candidate)', 'Best'],
+        dryRunRows: clampRows(dryRows),
+        estimatedRecCalls: Math.min(1_000_000_000, Math.pow(2, Math.max(1, amount))),
+        stateCount: amount + 1,
+        transitionCount: amount * normalizedCoins.length,
+        cppCode: `int coinChange(vector<int>& coins, int amount) {\n  const int INF = 1e9;\n  vector<int> dp(amount + 1, INF);\n  dp[0] = 0;\n  for (int a = 1; a <= amount; a++) {\n    for (int c : coins) if (c <= a && dp[a - c] != INF) {\n      dp[a] = min(dp[a], dp[a - c] + 1);\n    }\n  }\n  return dp[amount] == INF ? -1 : dp[amount];\n}`,
+        treeRoot: `C(${amount})`,
+      }
+    }
+
+    case 'unique-paths': {
+      const dims = parseNumberList(rawInput.replace(/x/gi, ','))
+      const rows = Math.max(1, Math.floor(dims[0] ?? 3))
+      const cols = Math.max(1, Math.floor(dims[1] ?? 5))
+      const dp = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0))
+      const transitions: string[] = []
+      const dryRows: string[][] = []
+
+      for (let r = 0; r < rows; r++) dp[r][0] = 1
+      for (let c = 0; c < cols; c++) dp[0][c] = 1
+      transitions.push('Base row/column initialized to 1')
+
+      for (let r = 1; r < rows; r++) {
+        for (let c = 1; c < cols; c++) {
+          dp[r][c] = dp[r - 1][c] + dp[r][c - 1]
+          if (transitions.length < 90) {
+            transitions.push(`dp[${r}][${c}] = dp[${r - 1}][${c}] + dp[${r}][${c - 1}] = ${dp[r][c]}`)
+          }
+          dryRows.push([`(${r},${c})`, `${dp[r - 1][c]}`, `${dp[r][c - 1]}`, `${dp[r][c]}`])
+        }
+      }
+
+      return {
+        answerLabel: 'Unique Paths',
+        answerValue: `${dp[rows - 1][cols - 1]}`,
+        explanation: {
+          recurrence: 'dp[r][c] = dp[r-1][c] + dp[r][c-1]',
+          complexityTime: 'O(m*n)',
+          complexitySpace: 'O(m*n)',
+        },
+        matrix: dp,
+        transitions,
+        dryRunHeaders: ['Cell', 'From Top', 'From Left', 'Ways'],
+        dryRunRows: clampRows(dryRows),
+        estimatedRecCalls: Math.min(1_000_000_000, Math.pow(2, Math.max(1, rows + cols - 2))),
+        stateCount: rows * cols,
+        transitionCount: Math.max(0, (rows - 1) * (cols - 1)),
+        cppCode: `int uniquePaths(int m, int n) {\n  vector<vector<int>> dp(m, vector<int>(n, 1));\n  for (int i = 1; i < m; i++) {\n    for (int j = 1; j < n; j++) {\n      dp[i][j] = dp[i - 1][j] + dp[i][j - 1];\n    }\n  }\n  return dp[m - 1][n - 1];\n}`,
+        treeRoot: `U(${rows - 1},${cols - 1})`,
+      }
+    }
+
+    case 'lcs': {
+      const [firstRaw = '', secondRaw = ''] = rawInput.split('|')
+      const first = firstRaw
+      const second = secondRaw
+      const dp = Array.from({ length: first.length + 1 }, () => Array.from({ length: second.length + 1 }, () => 0))
+      const transitions: string[] = []
+      const dryRows: string[][] = []
+
+      for (let i = 1; i <= first.length; i++) {
+        for (let j = 1; j <= second.length; j++) {
+          if (first[i - 1] === second[j - 1]) {
+            dp[i][j] = dp[i - 1][j - 1] + 1
+            if (transitions.length < 90) transitions.push(`dp[${i}][${j}] = dp[${i - 1}][${j - 1}] + 1 = ${dp[i][j]}`)
+          } else {
+            dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+            if (transitions.length < 90) transitions.push(`dp[${i}][${j}] = max(dp[${i - 1}][${j}], dp[${i}][${j - 1}]) = ${dp[i][j]}`)
+          }
+          dryRows.push([`${i},${j}`, `${first[i - 1]}`, `${second[j - 1]}`, `${dp[i][j]}`])
+        }
+      }
+
+      return {
+        answerLabel: 'LCS Length',
+        answerValue: `${dp[first.length][second.length]}`,
+        explanation: {
+          recurrence: 'If chars match: 1 + dp[i-1][j-1], else max(dp[i-1][j], dp[i][j-1])',
+          complexityTime: 'O(n*m)',
+          complexitySpace: 'O(n*m)',
+        },
+        matrix: dp,
+        transitions,
+        dryRunHeaders: ['Cell', 'A[i-1]', 'B[j-1]', 'LCS Value'],
+        dryRunRows: clampRows(dryRows),
+        estimatedRecCalls: Math.min(1_000_000_000, Math.pow(2, Math.max(1, first.length + second.length))),
+        stateCount: (first.length + 1) * (second.length + 1),
+        transitionCount: first.length * second.length,
+        cppCode: `int lcs(string a, string b) {\n  int n = a.size(), m = b.size();\n  vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));\n  for (int i = 1; i <= n; i++) {\n    for (int j = 1; j <= m; j++) {\n      if (a[i - 1] == b[j - 1]) dp[i][j] = 1 + dp[i - 1][j - 1];\n      else dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);\n    }\n  }\n  return dp[n][m];\n}`,
+        treeRoot: `L(${first.length},${second.length})`,
+      }
+    }
+
+    case 'edit-distance': {
+      const [firstRaw = '', secondRaw = ''] = rawInput.split('|')
+      const first = firstRaw
+      const second = secondRaw
+      const dp = Array.from({ length: first.length + 1 }, () => Array.from({ length: second.length + 1 }, () => 0))
+      const transitions: string[] = []
+      const dryRows: string[][] = []
+
+      for (let i = 0; i <= first.length; i++) dp[i][0] = i
+      for (let j = 0; j <= second.length; j++) dp[0][j] = j
+      transitions.push('Initialize row 0 and col 0 with insertion/deletion counts')
+
+      for (let i = 1; i <= first.length; i++) {
+        for (let j = 1; j <= second.length; j++) {
+          if (first[i - 1] === second[j - 1]) {
+            dp[i][j] = dp[i - 1][j - 1]
+            if (transitions.length < 90) transitions.push(`dp[${i}][${j}] = dp[${i - 1}][${j - 1}] = ${dp[i][j]}`)
+            dryRows.push([`${i},${j}`, `${first[i - 1]}`, `${second[j - 1]}`, `${dp[i][j]}`, 'match'])
+          } else {
+            const insertCost = dp[i][j - 1] + 1
+            const deleteCost = dp[i - 1][j] + 1
+            const replaceCost = dp[i - 1][j - 1] + 1
+            dp[i][j] = Math.min(insertCost, deleteCost, replaceCost)
+            if (transitions.length < 90) {
+              transitions.push(`dp[${i}][${j}] = 1 + min(${dp[i][j - 1]}, ${dp[i - 1][j]}, ${dp[i - 1][j - 1]}) = ${dp[i][j]}`)
+            }
+
+            let action = 'replace'
+            if (dp[i][j] === insertCost) action = 'insert'
+            if (dp[i][j] === deleteCost) action = 'delete'
+
+            dryRows.push([`${i},${j}`, `${first[i - 1]}`, `${second[j - 1]}`, `${dp[i][j]}`, action])
+          }
+        }
+      }
+
+      return {
+        answerLabel: 'Edit Distance',
+        answerValue: `${dp[first.length][second.length]}`,
+        explanation: {
+          recurrence: 'If chars differ: 1 + min(insert, delete, replace)',
+          complexityTime: 'O(n*m)',
+          complexitySpace: 'O(n*m)',
+        },
+        matrix: dp,
+        transitions,
+        dryRunHeaders: ['Cell', 'A[i-1]', 'B[j-1]', 'Value', 'Action'],
+        dryRunRows: clampRows(dryRows),
+        estimatedRecCalls: Math.min(1_000_000_000, Math.pow(3, Math.min(16, Math.max(1, first.length + second.length)))),
+        stateCount: (first.length + 1) * (second.length + 1),
+        transitionCount: first.length * second.length,
+        cppCode: `int minDistance(string a, string b) {\n  int n = a.size(), m = b.size();\n  vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));\n  for (int i = 0; i <= n; i++) dp[i][0] = i;\n  for (int j = 0; j <= m; j++) dp[0][j] = j;\n  for (int i = 1; i <= n; i++) {\n    for (int j = 1; j <= m; j++) {\n      if (a[i - 1] == b[j - 1]) dp[i][j] = dp[i - 1][j - 1];\n      else dp[i][j] = 1 + min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});\n    }\n  }\n  return dp[n][m];\n}`,
+        treeRoot: `E(${first.length},${second.length})`,
+      }
+    }
+
     case 'knapsack-01': {
       const [weightsRaw = '', valuesRaw = '', capRaw = '0'] = rawInput.split('|')
       const weights = parseNumberList(weightsRaw).map((v) => Math.max(0, Math.floor(v)))
@@ -1079,39 +1519,39 @@ const solveProblem = (problemId: string, rawInput: string): SolverResult => {
         const left = dfs(node.left)
         const right = dfs(node.right)
 
-        const noParentMatch = Math.max(left[0], left[1]) + Math.max(right[0], right[1])
+        const matchedToParent = left[0] + right[0]
 
-        let withParentMatch = 0
+        let free = left[0] + right[0]
         if (node.left) {
-          withParentMatch = Math.max(withParentMatch, 1 + left[1] + Math.max(right[0], right[1]))
+          free = Math.max(free, 1 + left[1] + right[0])
         }
         if (node.right) {
-          withParentMatch = Math.max(withParentMatch, 1 + right[1] + Math.max(left[0], left[1]))
+          free = Math.max(free, 1 + left[0] + right[1])
         }
 
-        transitions.push(`node=${node.value}, free=${noParentMatch}, matchedWithChild=${withParentMatch}`)
-        dryRows.push([`${node.value}`, `${noParentMatch}`, `${withParentMatch}`])
-        return [noParentMatch, withParentMatch]
+        transitions.push(`node=${node.value}, free=${free}, matchedToParent=${matchedToParent}`)
+        dryRows.push([`${node.value}`, `${free}`, `${matchedToParent}`])
+        return [free, matchedToParent]
       }
 
-      const [free, matched] = dfs(root)
+      const [free] = dfs(root)
 
       return {
         answerLabel: 'Maximum Matching Size',
-        answerValue: `${Math.max(free, matched)}`,
+        answerValue: `${free}`,
         explanation: {
-          recurrence: 'Tree DP with states: free(node) and matchedWithChild(node).',
+          recurrence: 'States: free(u)=best if u is not matched to parent; parentMatched(u)=best if u is already matched to parent.',
           complexityTime: 'O(n)',
           complexitySpace: 'O(h)',
         },
         matrix: [values],
         transitions,
-        dryRunHeaders: ['Node', 'Free', 'MatchedWithChild'],
+        dryRunHeaders: ['Node', 'Free', 'MatchedToParent'],
         dryRunRows: clampRows(dryRows),
         estimatedRecCalls: Math.min(1_000_000_000, Math.pow(2, Math.max(1, values.length))),
         stateCount: values.length * 2,
         transitionCount: values.length,
-        cppCode: `pair<int,int> dfs(TreeNode* u) {\n  if (!u) return {0, 0};\n  auto L = dfs(u->left), R = dfs(u->right);\n  int free = max(L.first, L.second) + max(R.first, R.second);\n  int match = 0;\n  if (u->left) match = max(match, 1 + L.second + max(R.first, R.second));\n  if (u->right) match = max(match, 1 + R.second + max(L.first, L.second));\n  return {free, match};\n}\nint maxMatching(TreeNode* root) {\n  auto p = dfs(root);\n  return max(p.first, p.second);\n}`,
+        cppCode: `pair<int,int> dfs(TreeNode* u) {\n  if (!u) return {0, 0};\n  auto L = dfs(u->left), R = dfs(u->right);\n  int matchedToParent = L.first + R.first;\n  int free = L.first + R.first;\n  if (u->left) free = max(free, 1 + L.second + R.first);\n  if (u->right) free = max(free, 1 + L.first + R.second);\n  return {free, matchedToParent};\n}\nint maxMatching(TreeNode* root) {\n  return dfs(root).first;\n}`,
         treeRoot: 'TM(root)',
       }
     }
@@ -1138,14 +1578,13 @@ const solveProblem = (problemId: string, rawInput: string): SolverResult => {
   }
 }
 
-function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
+function AdvancedDPProblems({ problemId, title, onNavigate, quickStartMode, quickStartVersion = 0 }: Props) {
   const [problemView, setProblemView] = useState<ProblemView>('visual')
   const [visualMode, setVisualMode] = useState<VisualMode>('dp')
   const [showExplanation, setShowExplanation] = useState(true)
   const [inputRaw, setInputRaw] = useState(defaultsByProblem[problemId] ?? '')
   const [transitionCursor, setTransitionCursor] = useState(0)
-  const [isTransitionPlaying, setIsTransitionPlaying] = useState(false)
-  const [transitionSpeedMs, setTransitionSpeedMs] = useState(900)
+  const lastAppliedQuickStartVersion = useRef(quickStartVersion)
 
   const result = useMemo(() => solveProblem(problemId, inputRaw), [problemId, inputRaw])
   const codeVariants = ADVANCED_DP_CPP_VARIANTS[problemId]
@@ -1158,31 +1597,30 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
   const currentIndex = PROBLEM_SEQUENCE.indexOf(problemId as ProblemId)
   const hasPrevious = currentIndex > 0
   const hasNext = currentIndex < PROBLEM_SEQUENCE.length - 1
-  const previousProblemId = problemId === 'knapsack-01'
-    ? 'edit-distance'
-    : hasPrevious
-      ? PROBLEM_SEQUENCE[currentIndex - 1]
-      : null
+  const previousProblemId = hasPrevious ? PROBLEM_SEQUENCE[currentIndex - 1] : null
   const nextProblemId = hasNext ? PROBLEM_SEQUENCE[currentIndex + 1] : null
 
   useEffect(() => {
-    setTransitionCursor(0)
-    setIsTransitionPlaying(false)
-  }, [problemId, inputRaw, result.transitions.length])
+    setInputRaw(defaultsByProblem[problemId] ?? '')
+  }, [problemId])
 
   useEffect(() => {
-    if (!isTransitionPlaying || result.transitions.length === 0) return
-    if (isTransitionComplete) {
-      setIsTransitionPlaying(false)
-      return
+    if (quickStartVersion <= 0 || quickStartVersion === lastAppliedQuickStartVersion.current) return
+
+    if (quickStartMode === 'cpp') {
+      setProblemView('cpp')
+    } else {
+      setProblemView('visual')
+      const nextMode: VisualMode = quickStartMode === 'tree' || quickStartMode === 'dryrun' ? quickStartMode : 'dp'
+      setVisualMode(nextMode)
     }
 
-    const timer = window.setTimeout(() => {
-      setTransitionCursor((prev) => Math.min(prev + 1, result.transitions.length - 1))
-    }, transitionSpeedMs)
+    lastAppliedQuickStartVersion.current = quickStartVersion
+  }, [quickStartMode, quickStartVersion])
 
-    return () => window.clearTimeout(timer)
-  }, [isTransitionPlaying, isTransitionComplete, result.transitions.length, transitionSpeedMs])
+  useEffect(() => {
+    setTransitionCursor(0)
+  }, [problemId, inputRaw, result.transitions.length])
 
   return (
     <article className="dp-problem-card" id="dp-problem-advanced">
@@ -1420,7 +1858,6 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
               <h4>Transition Playback</h4>
               <div className="dp-transition-meta">
                 <span>{Math.min(transitionCursor + 1, result.transitions.length)}/{result.transitions.length || 0} steps</span>
-                <span>{transitionSpeedMs}ms</span>
               </div>
             </div>
 
@@ -1446,7 +1883,6 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
                 max={Math.max(0, result.transitions.length - 1)}
                 value={Math.min(transitionCursor, Math.max(0, result.transitions.length - 1))}
                 onChange={(e) => {
-                  setIsTransitionPlaying(false)
                   setTransitionCursor(Number(e.target.value))
                 }}
                 disabled={result.transitions.length === 0}
@@ -1459,7 +1895,6 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
                 type="button"
                 className="dp-problem-nav-btn"
                 onClick={() => {
-                  setIsTransitionPlaying(false)
                   setTransitionCursor(0)
                 }}
                 disabled={result.transitions.length === 0 || transitionCursor === 0}
@@ -1470,7 +1905,6 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
                 type="button"
                 className="dp-problem-nav-btn"
                 onClick={() => {
-                  setIsTransitionPlaying(false)
                   setTransitionCursor((prev) => Math.max(0, prev - 1))
                 }}
                 disabled={result.transitions.length === 0 || transitionCursor === 0}
@@ -1481,20 +1915,11 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
                 type="button"
                 className="dp-problem-nav-btn dp-play-btn"
                 onClick={() => {
-                  if (isTransitionComplete && result.transitions.length > 0) {
-                    setTransitionCursor(0)
-                    setIsTransitionPlaying(true)
-                    return
-                  }
-                  if (isTransitionPlaying) {
-                    setIsTransitionPlaying(false)
-                  } else {
-                    setIsTransitionPlaying(true)
-                  }
+                  setTransitionCursor(Math.max(0, result.transitions.length - 1))
                 }}
-                disabled={result.transitions.length === 0}
+                disabled={result.transitions.length === 0 || isTransitionComplete}
               >
-                {isTransitionPlaying ? 'Pause' : 'Play'}
+                Show All
               </button>
               <button
                 type="button"
@@ -1510,25 +1935,12 @@ function AdvancedDPProblems({ problemId, title, onNavigate }: Props) {
                 type="button"
                 className="dp-problem-nav-btn"
                 onClick={() => {
-                  setIsTransitionPlaying(false)
                   setTransitionCursor(Math.max(0, result.transitions.length - 1))
                 }}
                 disabled={result.transitions.length === 0 || isTransitionComplete}
               >
                 End
               </button>
-
-              <label className="dp-transition-speed-label" htmlFor="advanced-transition-speed">Speed</label>
-              <select
-                id="advanced-transition-speed"
-                className="dp-text-input dp-transition-speed-select"
-                value={transitionSpeedMs}
-                onChange={(e) => setTransitionSpeedMs(Number(e.target.value))}
-              >
-                <option value={1300}>Slow</option>
-                <option value={900}>Normal</option>
-                <option value={550}>Fast</option>
-              </select>
             </div>
           </div>
 

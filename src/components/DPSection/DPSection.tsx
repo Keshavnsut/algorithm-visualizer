@@ -649,6 +649,8 @@ type ProblemId =
   | 'diameter-variants'
   | 'tree-matching'
 
+const CORE_DP_PROBLEM_IDS: ProblemId[] = ['climbing', 'house', 'coin-change', 'unique-paths', 'lcs', 'edit-distance']
+
 const DP_PROBLEM_DIRECTORY: Array<{
   id: ProblemId
   title: string
@@ -807,8 +809,10 @@ const DP_CPP_CODE_MAP: Partial<Record<ProblemId, string>> = {
 
 function DPSection({ onContextChange }: DPSectionProps) {
   const [selectedProblem, setSelectedProblem] = useState<ProblemId | null>(null)
+  const useUnifiedProblemStructure = true
   const [quickStartProblem, setQuickStartProblem] = useState<ProblemId>('climbing')
   const [quickStartMode, setQuickStartMode] = useState<QuickStartMode>('visual')
+  const [advancedQuickStartVersion, setAdvancedQuickStartVersion] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTagFilter, setActiveTagFilter] = useState('All')
   const [lastOpenedProblem, setLastOpenedProblem] = useState<ProblemId | null>(null)
@@ -1143,20 +1147,12 @@ function DPSection({ onContextChange }: DPSectionProps) {
               type="button"
               className="dp-problem-nav-btn dp-play-btn"
               onClick={() => {
-                if (transitionCursor >= transitions.length - 1 && transitions.length > 0) {
-                  setTransitionCursor(0)
-                  setIsTransitionPlaying(true)
-                  return
-                }
-                if (isTransitionPlaying) {
-                  setIsTransitionPlaying(false)
-                } else {
-                  setIsTransitionPlaying(true)
-                }
+                setIsTransitionPlaying(false)
+                setTransitionCursor(Math.max(0, transitions.length - 1))
               }}
-              disabled={transitions.length === 0}
+              disabled={transitions.length === 0 || transitionCursor >= transitions.length - 1}
             >
-              {isTransitionPlaying ? 'Pause' : 'Play'}
+              Show All
             </button>
             <button
               type="button"
@@ -1233,6 +1229,11 @@ function DPSection({ onContextChange }: DPSectionProps) {
   const handleQuickStart = () => {
     const targetProblem = quickStartProblem
     handleSelectProblem(targetProblem)
+
+    if (useUnifiedProblemStructure) {
+      setAdvancedQuickStartVersion((prev) => prev + 1)
+      return
+    }
 
     if (targetProblem === 'climbing') {
       if (quickStartMode === 'cpp') {
@@ -1465,10 +1466,10 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </div>
       )}
 
-      {selectedProblem === 'climbing' && (
+      {!useUnifiedProblemStructure && selectedProblem === 'climbing' && (
       <article className="dp-problem-card" id="dp-problem-climbing">
         <div className="dp-problem-header">
-          <h3>Problem 1: Climbing Stairs</h3>
+          <h3>Climbing Stairs</h3>
           <span className="dp-problem-tag">1D DP</span>
         </div>
 
@@ -1739,10 +1740,10 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </article>
       )}
 
-      {selectedProblem === 'house' && (
+      {!useUnifiedProblemStructure && selectedProblem === 'house' && (
       <article className="dp-problem-card" id="dp-problem-house">
         <div className="dp-problem-header">
-          <h3>Problem 2: House Robber</h3>
+          <h3>House Robber</h3>
           <span className="dp-problem-tag">1D DP</span>
         </div>
 
@@ -2016,10 +2017,10 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </article>
       )}
 
-      {selectedProblem === 'coin-change' && (
+      {!useUnifiedProblemStructure && selectedProblem === 'coin-change' && (
       <article className="dp-problem-card" id="dp-problem-coin-change">
         <div className="dp-problem-header">
-          <h3>Problem 3: Coin Change</h3>
+          <h3>Coin Change</h3>
           <span className="dp-problem-tag">1D DP</span>
         </div>
 
@@ -2262,10 +2263,10 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </article>
       )}
 
-      {selectedProblem === 'unique-paths' && (
+      {!useUnifiedProblemStructure && selectedProblem === 'unique-paths' && (
       <article className="dp-problem-card" id="dp-problem-unique-paths">
         <div className="dp-problem-header">
-          <h3>Problem 4: Unique Paths</h3>
+          <h3>Unique Paths</h3>
           <span className="dp-problem-tag">2D DP</span>
         </div>
 
@@ -2524,10 +2525,10 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </article>
       )}
 
-      {selectedProblem === 'lcs' && (
+      {!useUnifiedProblemStructure && selectedProblem === 'lcs' && (
       <article className="dp-problem-card" id="dp-problem-lcs">
         <div className="dp-problem-header">
-          <h3>Problem 5: Longest Common Subsequence</h3>
+          <h3>Longest Common Subsequence</h3>
           <span className="dp-problem-tag">2D DP</span>
         </div>
 
@@ -2761,10 +2762,10 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </article>
       )}
 
-      {selectedProblem === 'edit-distance' && (
+      {!useUnifiedProblemStructure && selectedProblem === 'edit-distance' && (
       <article className="dp-problem-card" id="dp-problem-edit-distance">
         <div className="dp-problem-header">
-          <h3>Problem 6: Edit Distance</h3>
+          <h3>Edit Distance</h3>
           <span className="dp-problem-tag">2D DP</span>
         </div>
 
@@ -3000,11 +3001,13 @@ function DPSection({ onContextChange }: DPSectionProps) {
       </article>
       )}
 
-      {selectedProblem !== null && selectedProblem !== 'climbing' && selectedProblem !== 'house' && selectedProblem !== 'coin-change' && selectedProblem !== 'unique-paths' && selectedProblem !== 'lcs' && selectedProblem !== 'edit-distance' && (
+      {selectedProblem !== null && (useUnifiedProblemStructure || !CORE_DP_PROBLEM_IDS.includes(selectedProblem)) && (
         <AdvancedDPProblems
           problemId={selectedProblem}
           title={selectedProblemInfo?.title ?? 'Dynamic Programming Problem'}
           onNavigate={handleSelectProblem}
+          quickStartMode={quickStartMode}
+          quickStartVersion={advancedQuickStartVersion}
         />
       )}
     </section>

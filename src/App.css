@@ -14,9 +14,9 @@
 
 html[data-theme='light'] .app {
   background:
-    radial-gradient(circle at 10% 10%, rgba(79, 70, 229, 0.1), transparent 30%),
-    radial-gradient(circle at 90% 90%, rgba(14, 165, 233, 0.08), transparent 28%),
-    linear-gradient(135deg, #f8faff, #eef2ff);
+    radial-gradient(circle at 10% 10%, rgba(79, 70, 229, 0.14), transparent 32%),
+    radial-gradient(circle at 90% 90%, rgba(14, 165, 233, 0.12), transparent 30%),
+    linear-gradient(135deg, #f8fbff, #eaf1ff);
 }
 
 /* Header Styles */
@@ -32,9 +32,9 @@ html[data-theme='light'] .app {
 }
 
 html[data-theme='light'] .header {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(244, 247, 255, 0.9));
-  border-bottom: 1px solid rgba(79, 70, 229, 0.18);
-  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(241, 246, 255, 0.94));
+  border-bottom: 1px solid rgba(79, 70, 229, 0.24);
+  box-shadow: 0 8px 26px rgba(30, 41, 59, 0.09);
 }
 
 .header-actions {
@@ -70,7 +70,9 @@ html[data-theme='light'] .header {
 }
 
 html[data-theme='light'] .nav-btn {
-  background: rgba(79, 70, 229, 0.06);
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.2);
+  color: var(--text-secondary);
 }
 
 .nav-btn:hover {
@@ -87,6 +89,10 @@ html[data-theme='light'] .nav-btn {
   box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
 }
 
+html[data-theme='light'] .nav-btn.active {
+  color: #f8fafc;
+}
+
 .theme-toggle {
   border: 1px solid var(--border);
   background: var(--card-bg);
@@ -97,6 +103,12 @@ html[data-theme='light'] .nav-btn {
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+html[data-theme='light'] .theme-toggle {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(79, 70, 229, 0.24);
+  color: var(--text-primary);
 }
 
 .theme-toggle:hover {
@@ -119,6 +131,12 @@ html[data-theme='light'] .nav-btn {
   border: 1px solid var(--border-soft);
   box-shadow: var(--card-shadow);
   backdrop-filter: blur(14px);
+}
+
+html[data-theme='light'] .quick-sidebar {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(79, 70, 229, 0.22);
+  box-shadow: 0 12px 26px rgba(30, 41, 59, 0.09);
 }
 
 .quick-sidebar-btn {
@@ -210,9 +228,9 @@ html[data-theme='light'] .nav-btn {
 }
 
 html[data-theme='light'] .visualizer-container {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(246, 249, 255, 0.88));
-  border: 1px solid rgba(79, 70, 229, 0.16);
-  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(243, 248, 255, 0.92));
+  border: 1px solid rgba(79, 70, 229, 0.22);
+  box-shadow: 0 16px 36px rgba(30, 41, 59, 0.1);
 }
 
 .visualizer-container:hover {
@@ -332,6 +350,26 @@ select:focus, input:focus {
   color: var(--text-secondary);
   font-size: 0.875rem;
   line-height: 1.6;
+}
+
+html[data-theme='light'] .footer,
+html[data-theme='light'] .control-group label,
+html[data-theme='light'] .algorithm-info p,
+html[data-theme='light'] .complexity span,
+html[data-theme='light'] .history-empty,
+html[data-theme='light'] .stats,
+html[data-theme='light'] .legend-item,
+html[data-theme='light'] .instructions li {
+  color: var(--text-secondary);
+}
+
+html[data-theme='light'] .visualizer-container h2,
+html[data-theme='light'] .visualizer-container h3,
+html[data-theme='light'] .visualizer-container h4,
+html[data-theme='light'] .visualizer-container th,
+html[data-theme='light'] .visualizer-container td,
+html[data-theme='light'] .visualizer-container strong {
+  color: var(--text-primary);
 }
 
 .complexity {

@@ -17,6 +17,7 @@ function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = 
   const [activeTab, setActiveTab] = useState<AITabType>('chat')
   const [isOpen, setIsOpen] = useState(false)
   const [providerInfo, setProviderInfo] = useState<string>('AI offline')
+  const aiOnline = providerInfo !== 'AI offline'
 
   useEffect(() => {
     let active = true
@@ -42,16 +43,28 @@ function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = 
   return (
     <div className="ai-assistant">
       {/* Floating Button */}
-      <button className="ai-toggle-btn" onClick={() => setIsOpen(!isOpen)} title="AI Assistant">
-        {isOpen ? '✕' : '🤖'}
+      <button
+        className="ai-toggle-btn"
+        onClick={() => setIsOpen(!isOpen)}
+        title="AI Assistant"
+        aria-label={isOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
+        aria-expanded={isOpen}
+      >
+        <span className="ai-toggle-icon">{isOpen ? '×' : 'AI'}</span>
       </button>
 
       {/* Panel */}
       {isOpen && (
         <div className="ai-panel">
+          <div className="ai-panel-glow" aria-hidden />
           <div className="ai-header">
-            <h3>AI Assistant</h3>
-            <p>{problemName}</p>
+            <div className="ai-header-main">
+              <h3>AI Assistant</h3>
+              <span className={`ai-status-pill ${aiOnline ? 'online' : 'offline'}`}>
+                {aiOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            <p className="ai-problem-label">{problemName}</p>
             <p className="ai-provider">{providerInfo}</p>
           </div>
 
@@ -60,13 +73,13 @@ function AIAssistant({ problemName = 'Algorithm', problemId = 'general', code = 
               className={`ai-tab-btn ${activeTab === 'explain' ? 'active' : ''}`}
               onClick={() => setActiveTab('explain')}
             >
-              Explain
+              Explain Code
             </button>
             <button
               className={`ai-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
               onClick={() => setActiveTab('chat')}
             >
-              Chat
+              Live Chat
             </button>
           </div>
 
