@@ -3,10 +3,21 @@ import OpenAI from 'openai'
 const provider = (process.env.AI_PROVIDER || 'openai').toLowerCase()
 const usingGroq = provider === 'groq'
 
-const openai = new OpenAI({
-  apiKey: usingGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY,
-  ...(usingGroq ? { baseURL: 'https://api.groq.com/openai/v1' } : {}),
-})
+let openaiClient: OpenAI | null = null
+
+const getOpenAIClient = () => {
+  if (openaiClient) {
+    return openaiClient
+  }
+
+  ensureApiKey()
+  openaiClient = new OpenAI({
+    apiKey: usingGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY,
+    ...(usingGroq ? { baseURL: 'https://api.groq.com/openai/v1' } : {}),
+  })
+
+  return openaiClient
+}
 
 const getModel = () => {
   if (usingGroq) {
@@ -74,7 +85,7 @@ export interface OptimizationRequest {
 
 // Explain submitted code
 export async function explainCode(req: ExplanationRequest): Promise<string> {
-  ensureApiKey()
+  const openai = getOpenAIClient()
 
   const safeLanguage = sanitizeText(req.language, 32)
   const safeProblemName = req.problemName ? sanitizeText(req.problemName, 80) : 'algorithm'
@@ -111,7 +122,7 @@ ${safeCode}
 
 // Give graduated hints based on difficulty
 export async function generateHint(req: HintRequest): Promise<string> {
-  ensureApiKey()
+  const openai = getOpenAIClient()
 
   const safeProblemName = sanitizeText(req.problemName, 80)
   const safeDifficulty = sanitizeText(req.difficulty, 24)
@@ -144,7 +155,7 @@ export async function generateHint(req: HintRequest): Promise<string> {
 
 // Chat interface for Q&A
 export async function chatWithAI(req: ChatRequest): Promise<string> {
-  ensureApiKey()
+  const openai = getOpenAIClient()
 
   const safeProblemName = req.problemName ? sanitizeText(req.problemName, 100) : undefined
 
@@ -178,7 +189,7 @@ export async function validateAndExplainError(
   language: string,
   error: string
 ): Promise<string> {
-  ensureApiKey()
+  const openai = getOpenAIClient()
 
   const safeLanguage = sanitizeText(language, 32)
   const safeError = sanitizeText(error, 1200)
@@ -215,7 +226,7 @@ Explain what the error means in simple terms and suggest 2-3 ways to fix it. Be 
 
 // Suggest code optimizations
 export async function suggestOptimizations(req: OptimizationRequest): Promise<string> {
-  ensureApiKey()
+  const openai = getOpenAIClient()
 
   const safeLanguage = sanitizeText(req.language, 32)
   const safeProblemName = req.problemName ? sanitizeText(req.problemName, 80) : 'an algorithm problem'

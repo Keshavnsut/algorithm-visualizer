@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.git
+.vscode
+
+smart-water-distribution-ann
+
+backend/node_modules
+backend/dist
+backend/data
+backend/.env
+
+dist

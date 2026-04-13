@@ -1,4 +1,5 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || 'http://localhost:5000'
+const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+const API_BASE_URL = configuredBaseUrl || (import.meta.env.DEV ? 'http://localhost:5000' : '')
 
 interface ApiOptions {
   timeoutMs?: number
@@ -9,7 +10,8 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const buildApiUrl = (path: string): string => {
   const normalized = path.startsWith('/') ? path : `/${path}`
-  return `${API_BASE_URL}${normalized}`
+  const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
+  return base ? `${base}${normalized}` : normalized
 }
 
 export async function postJson<T>(path: string, body: unknown, options?: ApiOptions): Promise<T> {

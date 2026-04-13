@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: algorithm-visualizer
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AI_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: llama-3.1-8b-instant
+      - key: FRONTEND_URL
+        value: "*"
+      - key: DATABASE_PATH
+        value: /var/data/ai.db
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: algorithm-visualizer-data
+      mountPath: /var/data
+      sizeGB: 1

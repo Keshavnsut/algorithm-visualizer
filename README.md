@@ -172,6 +172,22 @@ npm run build
 
 ---
 
+## Deploy For Resume Link
+
+This repository includes a production-ready Docker setup and Render blueprint for a single public URL deployment.
+
+- Deployment guide: `DEPLOY_RESUME_RENDER.md`
+- Render blueprint file: `render.yaml`
+- Production image build file: `Dockerfile`
+
+The deployed app serves frontend and backend from the same domain:
+
+- Frontend: `/`
+- Health check: `/health`
+- AI API: `/api/ai/*`
+
+---
+
 ## Repository Structure
 
 ```text
