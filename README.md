@@ -1,218 +1,249 @@
+<div align="center">
+
 # Algorithm Visualizer
 
-Interactive algorithm learning platform built with React + TypeScript + Vite.
+Interactive algorithm learning platform with real-time visual simulations, AI-assisted explanations, and resume-ready full-stack deployment.
 
-![React](https://img.shields.io/badge/React-18-149eca)
+[Live Demo](https://algorithm-visualizer-7yk7.onrender.com) | [Quick Start](#quick-start-local) | [Architecture](#architecture) | [Deployment](#deployment-render-single-url)
+
+![React](https://img.shields.io/badge/React-19-149eca)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-2f74c0)
 ![Vite](https://img.shields.io/badge/Vite-7-f2b022)
-![Status](https://img.shields.io/badge/Status-Active%20Development-2d9b5f)
+![Express](https://img.shields.io/badge/Express-4-111111)
+![Render](https://img.shields.io/badge/Deploy-Render-4f46e5)
+![License](https://img.shields.io/badge/License-MIT-2d9b5f)
 
----
+</div>
 
-## Project Overview
+## What this project delivers
 
-This project currently has three major learning sections:
+- Visual, interactive algorithm learning instead of static notes.
+- Three complete modules: Sorting, Pathfinding, and Dynamic Programming.
+- AI helper embedded in the UI for algorithm chat and code explanation.
+- Production deployment with one public URL (frontend + backend together).
+- Clean TypeScript codebase suitable for internship/resume portfolio review.
 
-- Sorting Visualizer
-- Pathfinding Visualizer
-- Dynamic Programming Hub
+## Feature snapshot
 
-Each section includes algorithm controls, visual states, and educational overlays to help users understand how the algorithm evolves step by step.
-
----
-
-## Current State Dashboard
-
-| Section | Status | Highlights |
+| Module | Coverage | Highlights |
 |---|---|---|
-| Sorting | Implemented | 7 sorting algorithms, speed and size controls, quick-sort pivot strategy, run history panel |
-| Pathfinding | Implemented | BFS, DFS, Dijkstra, A*, editable weighted graph, presets, drag and edit interactions |
-| Dynamic Programming | Implemented (Phase 1+) | Climbing Stairs and House Robber with visual walkthrough, compare mode, recursion tree mode, dry run, C++ tabulation and memoization |
+| Sorting Visualizer | 7 algorithms | Live bars, speed/size controls, pivot strategies, comparisons/swaps, run history |
+| Pathfinding Visualizer | 7 algorithms | Editable weighted graphs, presets, random generation, path/cost statistics |
+| Dynamic Programming Hub | 18 problems | Visual mode, compare mode, recursion tree, dry-run tables, C++ references |
+| AI Assistant | Explain + Chat | Context-aware code explanation and interview-style algorithm Q&A |
 
-### Progress Snapshot
+## Algorithms included
 
-- Sorting: Completed core feature set
-- Pathfinding: Completed core feature set
-- Dynamic Programming: Strong foundation completed, expanding problem library
-
----
-
-## Section Details
-
-### 1) Sorting Visualizer
-
-#### Algorithms Available
+### Sorting (7)
 
 - Bubble Sort
 - Selection Sort
 - Insertion Sort
 - Merge Sort
-- Quick Sort
+- Quick Sort (first, last, random, median-of-three pivot)
 - Heap Sort
 - Shell Sort
 
-#### Key Interactions
-
-- Adjustable array size and speed
-- Quick Sort pivot strategy selector:
-	- First element
-	- Last element
-	- Random element
-	- Median of three
-- Real-time metrics:
-	- Comparisons
-	- Swaps
-- Recent run history with timing and configuration snapshot
-
----
-
-### 2) Pathfinding Visualizer
-
-#### Algorithms Available
+### Pathfinding (7)
 
 - Breadth-First Search (BFS)
 - Depth-First Search (DFS)
 - Dijkstra
 - A*
+- Bellman-Ford
+- Bidirectional Search
+- Greedy Best-First Search
 
-#### Graph Features
-
-- Preset graph layouts
-- Add / move / delete nodes
-- Add weighted edges
-- Select custom start and end nodes
-- Visual state updates for visited path and final shortest path
-
----
-
-### 3) Dynamic Programming Hub
-
-#### Problems Added
+### Dynamic Programming (18)
 
 - Climbing Stairs
 - House Robber
+- Coin Change
+- Unique Paths
+- Longest Common Subsequence
+- Edit Distance
+- 0/1 Knapsack
+- Partition Equal Subset Sum
+- Target Sum
+- Longest Increasing Subsequence
+- Russian Doll Envelopes
+- Number of LIS
+- Matrix Chain Multiplication
+- Burst Balloons
+- Palindrome Partitioning
+- House Robber III
+- Diameter Variants
+- Tree Matching
 
-#### Learning Modes (per problem)
+## Architecture
 
-- DP Mode
-- Recursion vs DP Mode
-- Recursion Tree Mode
+```mermaid
+flowchart LR
+  U[User Browser] --> F[React + TypeScript + Vite Frontend]
+  F -->|/api/ai/*| B[Express + TypeScript Backend]
+  B --> A[OpenAI or Groq]
+  B --> D[(SQLite)]
+  B --> S[Static Frontend Build]
+```
 
-#### Educational Layers
+## Tech stack
 
-- Interactive walkthrough controls (play, pause, next, previous, reset)
-- Visual explanation cards
-- State transitions
-- Detailed dry run table
-- C++ code section with:
-	- Tabulation
-	- Memoization
+### Frontend
 
----
-
-## Roadmap (Future Additions)
-
-### Near-Term
-
-- Add more DP problems (Coin Change, Unique Paths, LCS)
-- Improve recursion tree with color-coded edge meaning and depth controls
-- Add code copy buttons for all language blocks
-- Add speed presets for DP animation
-
-### Mid-Term
-
-- Side-by-side algorithm comparison mode in Sorting and DP
-- Performance charting for multiple runs
-- Export dry run as CSV
-- URL-shareable state (problem, mode, step)
-
-### Long-Term
-
-- Additional algorithm categories:
-	- Graph algorithms (MST, Bellman-Ford)
-	- Greedy problems
-	- Backtracking visualizer
-- In-browser code execution sandbox for selected snippets
-- Guided challenge mode with problem prompts and validation
-
----
-
-## Tech Stack
-
-- React 18
+- React 19
 - TypeScript
 - Vite
-- CSS3
+- CSS
 
----
+### Backend
 
-## Run Locally
+- Node.js + Express
+- TypeScript
+- better-sqlite3
+- OpenAI SDK (OpenAI/Groq compatible)
+
+### DevOps
+
+- Docker (multi-stage production image)
+- Render Blueprint (`render.yaml`)
+
+## Quick start (local)
 
 ### Prerequisites
 
 - Node.js 18+
 - npm
 
-### Setup
+### Option A: Manual setup
 
 ```bash
-git clone https://github.com/Keshavnsut/algorithm-visualizer.git
-cd algorithm-visualizer
+# 1) Install frontend dependencies
 npm install
+
+# 2) Install backend dependencies
+cd backend
+npm install
+
+# 3) Create backend environment file
+cp .env.example .env
+
+# 4) Initialize local SQLite database
+npm run db:init
+```
+
+Run in two terminals:
+
+```bash
+# Terminal 1 (project root)
 npm run dev
 ```
 
-Open: http://localhost:5173
-
-### Production Build
-
 ```bash
-npm run build
+# Terminal 2
+cd backend
+npm run dev
 ```
 
----
+App URL: `http://localhost:5173`
 
-## Deploy For Resume Link
+### Option B: Setup scripts
 
-This repository includes a production-ready Docker setup and Render blueprint for a single public URL deployment.
+- Windows: `setup.bat`
+- macOS/Linux: `./setup.sh`
 
-- Deployment guide: `DEPLOY_RESUME_RENDER.md`
-- Render blueprint file: `render.yaml`
-- Production image build file: `Dockerfile`
+### Option C: Docker Compose
 
-The deployed app serves frontend and backend from the same domain:
+```bash
+docker-compose up --build
+```
+
+## Environment variables (backend)
+
+Copy `backend/.env.example` to `backend/.env` and configure:
+
+| Variable | Required | Description |
+|---|---|---|
+| `AI_PROVIDER` | Yes | `openai` or `groq` |
+| `OPENAI_API_KEY` | If using OpenAI | OpenAI API key |
+| `OPENAI_MODEL` | No | Default: `gpt-4o-mini` |
+| `GROQ_API_KEY` | If using Groq | Groq API key |
+| `GROQ_MODEL` | No | Default: `llama-3.1-8b-instant` |
+| `DATABASE_PATH` | No | SQLite path (dev default `./data/ai.db`) |
+| `FRONTEND_URL` | No | Allowed CORS origin(s) |
+| `PORT` | No | Backend port (default `5000`) |
+
+## API overview
+
+Base route: `/api/ai`
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/status` | Provider/model health |
+| POST | `/explain` | Explain submitted code |
+| POST | `/chat` | Ask algorithm questions |
+| POST | `/hint` | Get graduated hints |
+| POST | `/optimize` | Suggest optimizations |
+| POST | `/validate` | Explain compile/runtime errors |
+| GET | `/chat-history/:problemId` | Read chat history |
+| GET | `/hint-history/:problemId` | Read hint history |
+| GET | `/explanation-history/:problemId` | Read explanation history |
+
+## Deployment (Render single URL)
+
+This repository includes a production-ready single-service deployment:
+
+- Dockerfile: `Dockerfile`
+- Blueprint: `render.yaml`
+- Step-by-step guide: `DEPLOY_RESUME_RENDER.md`
+
+Production routes:
 
 - Frontend: `/`
-- Health check: `/health`
+- Health: `/health`
 - AI API: `/api/ai/*`
 
----
+Free-tier note:
 
-## Repository Structure
+- Render free plan does not support disks.
+- SQLite uses `/tmp/ai.db` in free-tier deployment, so data is ephemeral.
+
+## Repository structure
 
 ```text
 algorithm-visualizer/
-	src/
-		components/
-			SortingVisualizer/
-			PathfindingVisualizer/
-			DPSection/
-				cpp/
-		App.tsx
-		App.css
-		index.css
-		main.tsx
-	public/
-	package.json
-	vite.config.ts
+  src/
+    components/
+      SortingVisualizer/
+      PathfindingVisualizer/
+      DPSection/
+      AIAssistant/
+  backend/
+    src/
+      routes/
+      services/
+      db/
+  Dockerfile
+  docker-compose.yml
+  render.yaml
 ```
 
----
+## Documentation
 
-## Contribution
+- AI setup guide: `AI_SETUP_GUIDE.md`
+- AI quick start: `QUICK_START_AI.md`
+- Resume deployment guide: `DEPLOY_RESUME_RENDER.md`
 
-1. Fork the repository
-2. Create a branch
-3. Commit your changes
-4. Push to your branch
-5. Open a pull request
+## Resume-ready highlights
+
+- Full-stack TypeScript architecture (React + Express).
+- Rich algorithm coverage (7 sorting + 7 pathfinding + 18 DP).
+- AI-assisted education workflow with persistent history tracking.
+- Production Docker build and public Render deployment.
+
+## License
+
+MIT
+
+## Author
+
+Keshav
